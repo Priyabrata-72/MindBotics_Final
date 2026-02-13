@@ -17,7 +17,7 @@ import Footer from "@/components/Footer";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
 
-import mindBoticsLogo from "@/assets/mindbotics-logo.png";
+import mindBoticsLogo from "@/assets/mindbotics-logo.jpeg";
 import login1 from "@/assets/login_1.png";
 
 const Login: React.FC = () => {
