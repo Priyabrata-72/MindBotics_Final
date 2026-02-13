@@ -16,7 +16,7 @@ interface ProductType {
   category?: string;
   images?: { url: string }[];
   features?: string[];
-  specifications?: { key: string; value: string }[];
+  specifications?: { label: string; value: string }[];
   uses?: string[];
   includes?: string[];
 }
@@ -170,7 +170,7 @@ const ProductDetail = () => {
                       className="items-center border-b border-gray-200 pb-3 last:border-0"
                     >
                       <span className="font-medium text-gray-700">
-                        {spec.key}
+                        {spec.label}
                       </span>
 
                       <span className="text-gray-600 text-left break-words max-w-[60%] ">

@@ -76,7 +76,7 @@ const CourseManagement = () => {
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [syllabus, setSyllabus] = useState<string[]>([""]);
     const [requirements, setRequirements] = useState<string[]>([""]);
-    const [outcomes, setOutcomes] = useState<string[]>([""]);
+    const [learningOutcomes, setlearningOutcomes] = useState<string[]>([""]);
 
     const fetchCourses = async () => {
         try {
@@ -112,7 +112,7 @@ const CourseManagement = () => {
         setImagePreview(null);
         setSyllabus([""]);
         setRequirements([""]);
-        setOutcomes([""]);
+        setlearningOutcomes([""]);
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,7 +158,7 @@ const CourseManagement = () => {
             // If controller doesn't parse, it just stores the string or ignores.
             formData.append("syllabus", JSON.stringify(syllabus.filter(i => i)));
             formData.append("requirements", JSON.stringify(requirements.filter(i => i)));
-            formData.append("whatYouWillLearn", JSON.stringify(outcomes.filter(i => i))); // 'outcomes' or 'whatYouWillLearn'
+            formData.append("learningOutcomes", JSON.stringify(learningOutcomes.filter(i => i))); // 'learningOutcomes' or 'learninglearningOutcomes'
 
             if (image) {
                 formData.append("thumbnail", image); // Backend 'thumbnail' or 'image'? Model says 'thumbnail' (String), but usually upload middleware maps file.
@@ -347,12 +347,12 @@ const CourseManagement = () => {
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center">
                                         <Label>What You Will Learn</Label>
-                                        <Button type="button" variant="outline" size="sm" onClick={() => addListItem(setOutcomes, outcomes)}>Add Item</Button>
+                                        <Button type="button" variant="outline" size="sm" onClick={() => addListItem(setlearningOutcomes, learningOutcomes)}>Add Item</Button>
                                     </div>
-                                    {outcomes.map((item, index) => (
+                                    {learningOutcomes.map((item, index) => (
                                         <div key={index} className="flex gap-2">
-                                            <Input value={item} onChange={(e) => handleListChange(setOutcomes, outcomes, index, e.target.value)} placeholder="Skill acquired..." />
-                                            <Button type="button" variant="ghost" size="icon" onClick={() => removeListItem(setOutcomes, outcomes, index)} disabled={outcomes.length === 1}>
+                                            <Input value={item} onChange={(e) => handleListChange(setlearningOutcomes, learningOutcomes, index, e.target.value)} placeholder="Skill acquired..." />
+                                            <Button type="button" variant="ghost" size="icon" onClick={() => removeListItem(setlearningOutcomes, learningOutcomes, index)} disabled={learningOutcomes.length === 1}>
                                                 <X className="h-4 w-4" />
                                             </Button>
                                         </div>

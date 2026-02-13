@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, User } from "lucide-react";
-import mindBoticsLogo from "@/assets/mindbotics-logo.png";
+import mindBoticsLogo from "@/assets/mindbotics-logo.jpeg";
 import { useAuth } from "@/context/AuthContext";
 
 const navLinks = [

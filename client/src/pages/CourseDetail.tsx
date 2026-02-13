@@ -25,7 +25,7 @@ interface CourseDetailData {
   thumbnail?: string;
   syllabus?: string[];
   requirements?: string[];
-  learningOutcomes?: string[]; // whatYouWillLearn
+  learningOutcomes?: string[]; // learningOutcomes
   price: number;
 }
 
@@ -86,7 +86,7 @@ const CourseDetail = () => {
             price: data.price,
             syllabus: safeParseArr(data.syllabus),
             requirements: safeParseArr(data.requirements),
-            learningOutcomes: safeParseArr(data.learningOutcomes ?? data.learningOutcomes ?? []),
+            learningOutcomes: safeParseArr(data.learningOutcomes),
           };
 
           setCourse(normalized);
@@ -198,29 +198,22 @@ const CourseDetail = () => {
                   </div>
                 )}
 
-                {course.learningOutcomes && course.learningOutcomes.length > 0 && (
+                {course.learningOutcomes?.length > 0 && (
                   <div className="bg-card p-6 rounded-2xl border border-border">
                     <h3 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
                       <Award className="w-5 h-5 text-primary" />
                       What You'll Learn
                     </h3>
-
-                    <ul className="space-y-2">
+                    <ul className="space-y-3">
                       {course.learningOutcomes.map((outcome, index) => (
-                        <li
-                          key={index}
-                          className="text-muted-foreground flex items-center gap-2"
-                        >
-                          <span className="w-2 h-2 bg-primary rounded-full" />
-                          {outcome}
+                        <li key={index} className="text-muted-foreground flex items-start gap-3">
+                          <div className="mt-1 w-2 h-2 bg-primary rounded-full flex-shrink-0" />
+                          <span>{outcome}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                 )}
-
-
-
               </div>
             </div>
 

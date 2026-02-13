@@ -40,6 +40,7 @@ const getCourseById = asyncHandler(async (req, res) => {
 
     if (course) {
         res.json(course);
+        console.log(course)
     } else {
         res.status(404);
         throw new Error("Course not found");
@@ -101,7 +102,9 @@ const createCourse = asyncHandler(async (req, res) => {
             averageRating: Number(rating) || 0,
             syllabus: Array.isArray(syllabus) ? syllabus : [],
             requirements: Array.isArray(requirements) ? requirements : [],
-            learningOutcomes: Array.isArray(learningOutcomes) ? learningOutcomes : [],
+            learningOutcomes: Array.isArray(learningOutcomes)
+                ? learningOutcomes
+                : [],
             image: imageData,
             status: "active",
             instructor: req.user ? req.user._id : null,
