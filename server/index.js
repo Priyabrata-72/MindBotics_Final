@@ -19,7 +19,7 @@ const PORT = process.env.PORT || 5000;
 
 // CORS (IMPORTANT if using auth + frontend)
 app.use(cors({
-  origin: "https://your-frontend.onrender.com",
+  origin: "https://mind-botics.onrender.com",
   credentials: true
 }));
 
