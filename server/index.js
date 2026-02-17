@@ -18,7 +18,10 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // CORS (IMPORTANT if using auth + frontend)
-app.use(cors());
+app.use(cors({
+  origin: "https://your-frontend.onrender.com",
+  credentials: true
+}));
 
 // Body parsers
 app.use(express.json({ limit: '10mb' }));
