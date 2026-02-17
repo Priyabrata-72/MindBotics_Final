@@ -9,6 +9,7 @@ import GallerySection from "@/components/GallerySection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
+import Loader from "@/components/Loader";
 
 const Index = () => {
   useEffect(() => {

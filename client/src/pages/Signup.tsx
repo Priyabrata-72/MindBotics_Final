@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import api from "@/lib/api";
-import mindBoticsLogo from "@/assets/mindbotics-logo.jpeg";
+import mindBoticsLogo from "@/assets/mindbotics-logo.jpg";
 import signupImage from "@/assets/signup.svg";
 
 const Signup = () => {

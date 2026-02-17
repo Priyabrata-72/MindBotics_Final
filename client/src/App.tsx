@@ -2,7 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Loader from "./components/Loader";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Courses from "./pages/Courses";
@@ -33,63 +35,77 @@ import { AuthProvider } from "@/context/AuthContext";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <AuthProvider>
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <ScrollToTop />
-          <Routes>
-            {/* Admin Routes */}
-            <Route
-              path="/admin"
-              element={
-                <AdminRoute>
-                  <AdminLayout />
-                </AdminRoute>
-              }
-            >
-              <Route index element={<AdminDashboard />} />
-              <Route path="users" element={<UserManagement />} />
-              <Route path="courses" element={<CourseManagement />} />
-              <Route path="projects" element={<ProjectManagement />} />
-              <Route path="contacts" element={<ContactUserManagement />} />
-            </Route>
+const App = () => {
+  const [isLoading, setIsLoading] = useState(true);
 
-            <Route path="/" element={<Index />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/courses" element={<Courses />} />
-            <Route path="/course/:courseId" element={<CourseDetail />} />
-            <Route path="/instructor/:instructorId" element={<InstructorDetail />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/product/:productId" element={<ProductDetail />} />
-            {/* <Route path="/shop" element={<Shop />} /> */}
-            <Route path="/gallery" element={<Gallery />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/feedback" element={<FeedbackForm />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
+  useEffect(() => {
+    // Hide loader after a short delay for smooth transition
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
 
-            {/* User Profile */}
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
+    return () => clearTimeout(timer);
+  }, []);
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        {isLoading && <Loader />}
+        <Toaster />
+        <Sonner />
+        <AuthProvider>
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <ScrollToTop />
+            <Routes>
+              {/* Admin Routes */}
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <AdminLayout />
+                  </AdminRoute>
+                }
+              >
+                <Route index element={<AdminDashboard />} />
+                <Route path="users" element={<UserManagement />} />
+                <Route path="courses" element={<CourseManagement />} />
+                <Route path="projects" element={<ProjectManagement />} />
+                <Route path="contacts" element={<ContactUserManagement />} />
+              </Route>
+
+              <Route path="/" element={<Index />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/courses" element={<Courses />} />
+              <Route path="/course/:courseId" element={<CourseDetail />} />
+              <Route path="/instructor/:instructorId" element={<InstructorDetail />} />
+              <Route path="/projects" element={<Projects />} />
+              <Route path="/product/:productId" element={<ProductDetail />} />
+              {/* <Route path="/shop" element={<Shop />} /> */}
+              <Route path="/gallery" element={<Gallery />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/feedback" element={<FeedbackForm />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+
+              {/* User Profile */}
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PageBanner from "@/components/PageBanner";
 import ProductCard from "@/components/ProductCard";
+import Loader from "@/components/Loader";
 import api from "@/lib/api";
 
 interface RawProject {
@@ -28,6 +29,8 @@ const Products = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
+        setLoading(true); // start loading
+
         const res = await api.get("/projects");
 
         if (res.status === 200) {
@@ -51,12 +54,17 @@ const Products = () => {
         console.error("Failed to fetch projects:", error);
         setProjects([]);
       } finally {
-        setLoading(false);
+        setLoading(false); // stop loading
       }
     };
 
     fetchProjects();
   }, []);
+
+  // 🔥 FULL PAGE LOADER
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <div className="min-h-screen">
@@ -72,7 +80,6 @@ const Products = () => {
 
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
-
           <div className="text-center mb-12">
             <span className="text-primary font-semibold uppercase tracking-wider text-sm">
               Quality Projects
@@ -87,11 +94,7 @@ const Products = () => {
             </p>
           </div>
 
-          {loading ? (
-            <div className="text-center py-10">
-              <p className="text-muted-foreground">Loading projects...</p>
-            </div>
-          ) : projects.length === 0 ? (
+          {projects.length === 0 ? (
             <div className="text-center py-10">
               <p className="text-muted-foreground">
                 No projects available.
@@ -111,7 +114,6 @@ const Products = () => {
               ))}
             </div>
           )}
-
         </div>
       </section>
 

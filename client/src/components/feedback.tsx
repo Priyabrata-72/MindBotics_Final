@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import api from "@/lib/api";
 import feedbackImage from "@/assets/feedback.svg";
-import mindBoticsLogo from "@/assets/mindbotics-logo.jpeg";
+import mindBoticsLogo from "@/assets/mindbotics-logo.jpg";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
