@@ -42,8 +42,8 @@ const Courses = () => {
                 return "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60";
               if (img.startsWith("http")) return img;
               const baseUrl =
-                import.meta.env.VITE_API_BASE_URL ||
-                "http://localhost:5000";
+                import.meta.env.VITE_API_URL ||
+                "https://mindbotics-final-1.onrender.com";
               return `${baseUrl}/uploads/${img}`;
             };
 
@@ -69,13 +69,13 @@ const Courses = () => {
               instructor:
                 c.instructorName ||
                 (c.instructor &&
-                typeof c.instructor === "object"
+                  typeof c.instructor === "object"
                   ? c.instructor.username
                   : null) ||
                 "MindBotics Instructor",
               instructorId:
                 (c.instructor &&
-                typeof c.instructor === "object"
+                  typeof c.instructor === "object"
                   ? c.instructor._id
                   : c.instructor) || "1",
             };
@@ -98,8 +98,8 @@ const Courses = () => {
     activeCategory === "All"
       ? courses
       : courses.filter(
-          (course) => course.category === activeCategory
-        );
+        (course) => course.category === activeCategory
+      );
 
   const displayedCourses = filteredCourses.slice(
     0,
