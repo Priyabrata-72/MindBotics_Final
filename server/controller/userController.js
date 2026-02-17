@@ -292,7 +292,7 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
 
         if (req.file) {
             const filePath = req.file.path.replace(/\\/g, "/");
-            user.avatar = `${process.env.BASE_URL || "http://localhost:5000"}/${filePath}`;
+            user.avatar = `${process.env.BACKEND_URL || "https://mindbotics-final-1.onrender.com"}/${filePath}`;
         } else if (req.body.avatar) {
             user.avatar = req.body.avatar;
         }
