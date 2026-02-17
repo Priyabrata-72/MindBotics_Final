@@ -45,7 +45,7 @@ const CoursesSection = () => {
     if (img.startsWith("http")) return img;
 
     const baseUrl =
-      import.meta.env.VITE_API_BASE_URL || "https://mindbotics-final-1.onrender.com";
+      import.meta.env.VITE_API_URL || "https://mindbotics-final-1.onrender.com";
 
     return `${baseUrl}/uploads/${img}`;
   };

@@ -42,7 +42,7 @@ const Courses = () => {
                 return "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60";
               if (img.startsWith("http")) return img;
               const baseUrl =
-                import.meta.env.VITE_API_BASE_URL ||
+                import.meta.env.VITE_API_URL ||
                 "https://mindbotics-final-1.onrender.com";
               return `${baseUrl}/uploads/${img}`;
             };
