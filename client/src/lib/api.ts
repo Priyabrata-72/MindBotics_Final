@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || 'https://mindbotics-final-1.onrender.com',
+    baseURL: "https://mindbotics-final-1.onrender.com",
     headers: {
         'Content-Type': 'application/json',
     },

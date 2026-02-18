@@ -18,6 +18,12 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // CORS (IMPORTANT if using auth + frontend)
+const allowedOrigins = [
+    "https://mind-botics.onrender.com",
+    "http://localhost:5000",
+    process.env.CLIENT_URL
+].filter(Boolean);
+
 app.use(cors({
   origin: "https://mind-botics.onrender.com",
   credentials: true
