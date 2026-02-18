@@ -25,8 +25,8 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 app.use(cors({
-    origin: allowedOrigins,
-    credentials: true
+  origin: "https://mind-botics.onrender.com",
+  credentials: true
 }));
 
 // Body parsers
