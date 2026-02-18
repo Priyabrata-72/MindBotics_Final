@@ -18,7 +18,16 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // CORS (IMPORTANT if using auth + frontend)
-app.use(cors());
+const allowedOrigins = [
+    "https://mind-botics.onrender.com",
+    "http://localhost:5173",
+    process.env.CLIENT_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: "https://mind-botics.onrender.com",
+  credentials: true
+}));
 
 // Body parsers
 app.use(express.json({ limit: '10mb' }));

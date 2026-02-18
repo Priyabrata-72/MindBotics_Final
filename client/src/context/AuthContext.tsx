@@ -56,8 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setToken(null);
         localStorage.removeItem('user');
         localStorage.removeItem('token');
-        // Optional: Redirect to login or home
-        window.location.href = '/login';
+        // Navigation will be handled by the component calling logout (e.g., Navbar)
     };
 
     const isAuthenticated = !!token;

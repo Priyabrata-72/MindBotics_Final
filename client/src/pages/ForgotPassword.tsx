@@ -16,7 +16,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "@/lib/api";
 
-import mindBoticsLogo from "@/assets/mindbotics-logo.png";
+import mindBoticsLogo from "@/assets/mindbotics-logo.jpeg";
 import forgotPasswordImage from "@/assets/forgot-password.jpeg";
 
 const ForgotPassword: React.FC = () => {
