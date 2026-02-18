@@ -24,10 +24,16 @@ const PORT = process.env.PORT || 5000;
 //     process.env.CLIENT_URL
 // ].filter(Boolean);
 
-app.use(cors({
-  origin: "https://mindbotics.in",
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: [
+      "https://mind-botics.onrender.com",
+      "https://www.mindbotics.in",
+      "https://mindbotics.in"
+    ],
+    credentials: true
+  })
+);
 
 // Body parsers
 app.use(express.json({ limit: '10mb' }));
