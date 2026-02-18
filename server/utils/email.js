@@ -6,16 +6,24 @@ const createTransporter = () => {
     port: process.env.EMAIL_PORT,
     user: process.env.EMAIL_USER,
   });
+
   return nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: Number(process.env.EMAIL_PORT),
-    secure: Number(process.env.EMAIL_PORT) === 465,
+    secure: Number(process.env.EMAIL_PORT) === 465, // keep your logic
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD,
     },
+    requireTLS: true, // ✅ important fix
+    tls: {
+      rejectUnauthorized: false, // ✅ important for Render
+    },
+    connectionTimeout: 10000, // ✅ prevent long timeout
+    greetingTimeout: 10000,
   });
 };
+
 
 export const sendOtpEmail = async (email, otp, purpose = 'signup') => {
   const subject =
@@ -44,7 +52,7 @@ export const sendOtpEmail = async (email, otp, purpose = 'signup') => {
           <!-- Logo -->
           <tr>
             <td align="center" style="padding-bottom:15px;">
-              <img src=".\assets\mindbotics-logo.png"
+              <img src="publi/mindbotics-logo.jpg"
                    width="140"
                    alt="MindBotics Logo"
                    style="border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.1);" />
