@@ -5,6 +5,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { OAuth2Client } from "google-auth-library";
 import { generateOtp, hashOtp } from "../utils/otp.js";
 import { sendOtpEmail } from "../utils/email.js";
+import { uploadToCloudinary } from "../utils/cloudinaryHelper.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -291,8 +292,12 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
         user.username = req.body.username || user.username;
 
         if (req.file) {
-            const filePath = req.file.path.replace(/\\/g, "/");
-            user.avatar = `${process.env.BACKEND_URL || "https://mindbotics-final-1.onrender.com"}/${filePath}`;
+            try {
+                const imageData = await uploadToCloudinary(req.file.path, 'avatars');
+                user.avatar = imageData.url;
+            } catch (error) {
+                console.error("Avatar upload failed:", error);
+            }
         } else if (req.body.avatar) {
             user.avatar = req.body.avatar;
         }
