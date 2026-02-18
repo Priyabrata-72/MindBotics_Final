@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import api from "@/lib/api";
 import feedbackImage from "@/assets/feedback.svg";
-import mindBoticsLogo from "@/assets/mindbotics-logo.jpg";
+// import mindBoticsLogo from "src/mindbotics-logo.jpg";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,7 +84,7 @@ const Feedback = () => {
           <div className="flex items-center justify-center p-6">
             <Card className="w-full max-w-md bg-transparent border-none">
               <CardHeader className="text-center">
-                <img src={mindBoticsLogo} className="h-16 mx-auto mb-4" />
+                <img src="/mindbotics-logo.jpg" className="h-16 mx-auto mb-4" />
                 <CardTitle className="text-2xl font-bold text-indigo-600">
                   Student Feedback
                 </CardTitle>
