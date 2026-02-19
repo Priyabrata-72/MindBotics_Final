@@ -8,7 +8,7 @@ import { sendOtpEmail } from '../utils/email.js';
 import { authLimiter, otpLimiter } from '../middleware/rateLimit.js';
 import protect from "../middleware/auth.js";
 import upload from "../middleware/upload.js";
-import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
+import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinaryHelper.js";
 
 const router = express.Router();
 
