@@ -39,13 +39,14 @@ import {
 import api from "@/lib/api";
 import { toast } from "sonner";
 
-// ✅ Updated Interface
+// ✅ Updated Interface According To Your DB
 interface User {
     _id: string;
     username: string;
     email: string;
     role: string;
-    profilePic?: string; // 🔥 Added profile picture
+    avatar?: string;          // 🔥 matches your database
+    avatarPublicId?: string;  // optional (exists in DB)
 }
 
 const UserManagement = () => {
@@ -67,6 +68,7 @@ const UserManagement = () => {
             setLoading(true);
             const res = await api.get(`/admin/users?page=${page}&limit=10`);
             const data = res.data;
+
             if (res.status === 200) {
                 setUsers(data.users);
                 setTotalPages(data.pages);
@@ -151,16 +153,14 @@ const UserManagement = () => {
                     </p>
                 </div>
 
-                <Dialog
-                    open={isAddUserOpen}
-                    onOpenChange={setIsAddUserOpen}
-                >
+                <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
                     <DialogTrigger asChild>
                         <Button>
                             <Plus className="mr-2 h-4 w-4" />
                             Add User
                         </Button>
                     </DialogTrigger>
+
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Add New User</DialogTitle>
@@ -169,10 +169,7 @@ const UserManagement = () => {
                             </DialogDescription>
                         </DialogHeader>
 
-                        <form
-                            onSubmit={handleAddUser}
-                            className="space-y-4"
-                        >
+                        <form onSubmit={handleAddUser} className="space-y-4">
                             <div className="space-y-2">
                                 <Label>Name</Label>
                                 <Input
@@ -280,10 +277,10 @@ const UserManagement = () => {
                             <TableRow key={user._id}>
                                 <TableCell className="flex items-center gap-3">
                                     
-                                    {/* 🔥 PROFILE PICTURE DISPLAY */}
+                                    {/* 🔥 NOW USING avatar FIELD */}
                                     <Avatar className="h-10 w-10">
                                         <AvatarImage
-                                            src={user.profilePic || ""}
+                                            src={user.avatar || ""}
                                             alt={user.username}
                                         />
                                         <AvatarFallback>
@@ -295,8 +292,7 @@ const UserManagement = () => {
 
                                     <div>
                                         <div className="font-medium">
-                                            {user.username ||
-                                                "Unknown User"}
+                                            {user.username || "Unknown User"}
                                         </div>
                                         <div className="text-sm text-muted-foreground">
                                             {user.email}
@@ -336,8 +332,7 @@ const UserManagement = () => {
                                                 onClick={() =>
                                                     handleRoleChange(
                                                         user._id,
-                                                        user.role ===
-                                                            "user"
+                                                        user.role === "user"
                                                             ? "admin"
                                                             : "user"
                                                     )
@@ -351,9 +346,7 @@ const UserManagement = () => {
 
                                             <DropdownMenuItem
                                                 onClick={() =>
-                                                    handleDelete(
-                                                        user._id
-                                                    )
+                                                    handleDelete(user._id)
                                                 }
                                                 className="text-red-600"
                                             >
@@ -373,9 +366,7 @@ const UserManagement = () => {
                 <Button
                     variant="outline"
                     size="sm"
-                    onClick={() =>
-                        setPage((p) => Math.max(1, p - 1))
-                    }
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1 || loading}
                 >
                     Previous
@@ -389,13 +380,9 @@ const UserManagement = () => {
                     variant="outline"
                     size="sm"
                     onClick={() =>
-                        setPage((p) =>
-                            Math.min(totalPages, p + 1)
-                        )
+                        setPage((p) => Math.min(totalPages, p + 1))
                     }
-                    disabled={
-                        page === totalPages || loading
-                    }
+                    disabled={page === totalPages || loading}
                 >
                     Next
                 </Button>
