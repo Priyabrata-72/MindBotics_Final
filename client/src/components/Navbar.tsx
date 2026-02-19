@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, User } from "lucide-react";
-import mindBoticsLogo from "@/assets/mindbotics-logo.jpeg";
+// import mindBoticsLogo from "@/assets/mindbotics-logo.jpeg";
 import { useAuth } from "@/context/AuthContext";
 
 const navLinks = [
@@ -54,7 +54,7 @@ const Navbar = () => {
           {/* LOGO */}
           <Link to="/" className="flex items-center gap-2">
             <img
-              src={mindBoticsLogo}
+              src="/mindbotics-logo.jpg"
               alt="MindBotics"
               className="h-12 w-auto"
             />
