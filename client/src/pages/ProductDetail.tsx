@@ -167,13 +167,13 @@ const ProductDetail = () => {
                   {product.specifications.map((spec, index) => (
                     <div
                       key={index}
-                      className="items-center border-b border-gray-200 pb-3 last:border-0"
+                      className="flex justify-between items-start border-b border-gray-200 pb-3 last:border-0"
                     >
                       <span className="font-medium text-gray-700">
                         {spec.label}
                       </span>
 
-                      <span className="text-gray-600 text-left break-words max-w-[60%] ">
+                      <span className="text-gray-600 text-right break-words max-w-[60%]">
                         {spec.value}
                       </span>
                     </div>
@@ -182,7 +182,6 @@ const ProductDetail = () => {
 
               </div>
             ) : null}
-
 
             {/* Uses */}
             {product.uses?.length ? (
