@@ -71,26 +71,29 @@ const Profile = () => {
         setIsLoading(true);
 
         try {
+            const token = localStorage.getItem("token");
+
             const data = new FormData();
             data.append("username", formData.username);
+
             if (imageFile) {
-                data.append("avatar", imageFile);
-            } else if (formData.avatar) {
-                data.append("avatar", formData.avatar);
+                data.append("image", imageFile); // 🔥 Must match backend field
             }
 
-            const res = await api.put("/user/profile", data);
+            const res = await api.put("/user/profile/avatar", data, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "multipart/form-data",
+                },
+            });
 
-            // Assume res.data.user contains the updated user object
-            const updatedUser = { ...user, ...res.data.user };
+            const updatedUser = {
+                ...user,
+                username: formData.username,
+                avatar: res.data.avatar || user.avatar,
+            };
 
-            // Update local storage
-            // Note: server returns 'avatar', frontend uses 'photoUrl' in some places. 
-            // Let's standardise or map it.
-            localStorage.setItem("user", JSON.stringify({
-                ...updatedUser,
-                photoUrl: res.data.user.avatar || user.photoUrl
-            }));
+            localStorage.setItem("user", JSON.stringify(updatedUser));
 
             setUser(updatedUser);
             setIsEditing(false);
@@ -105,13 +108,14 @@ const Profile = () => {
             console.error("Update error:", error);
             toast({
                 title: "Error",
-                description: error.response?.data?.message || "Failed to update profile",
+                description: error.response?.data?.error || "Failed to update profile",
                 variant: "destructive",
             });
         } finally {
             setIsLoading(false);
         }
     };
+
 
     if (!user) return null; // or a loading spinner
 
@@ -130,7 +134,7 @@ const Profile = () => {
                             <div className="flex flex-col items-center mb-8">
                                 <div className="relative group">
                                     <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
-                                        <AvatarImage src={previewUrl || formData.avatar || user.photoUrl} alt={user.username} />
+                                        <AvatarImage src={previewUrl || user.avatar} alt={user.username} />
                                         <AvatarFallback className="text-2xl">{user.username?.charAt(0).toUpperCase()}</AvatarFallback>
                                     </Avatar>
                                     {isEditing && (
@@ -164,7 +168,7 @@ const Profile = () => {
                                             <Input
                                                 id="username"
                                                 name="username"
-                                                value={user.username}
+                                                value={formData.username}
                                                 onChange={handleChange}
                                                 disabled={!isEditing}
                                                 className="pl-9"
@@ -212,8 +216,7 @@ const Profile = () => {
                                                     setIsEditing(false);
                                                     setFormData({
                                                         username: user.username || "",
-                                                        avatar: user.photoUrl || "",
-                                                    });
+                                                        avatar: user.avatar || "",                                                    });
                                                     setImageFile(null);
                                                     setPreviewUrl(null);
                                                 }}

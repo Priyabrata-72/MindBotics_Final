@@ -463,4 +463,77 @@ router.get("/profile", protect, async (req, res) => {
     }
 });
 
+// ============================
+// UPDATE PROFILE AVATAR
+// ============================
+router.put(
+    "/profile/avatar",
+    protect,
+    upload.single("image"),
+    async (req, res) => {
+        try {
+            const user = await User.findById(req.user._id);
+
+            if (!user) {
+                return res.status(404).json({ error: "User not found" });
+            }
+
+            if (!req.file) {
+                return res.status(400).json({ error: "No image uploaded" });
+            }
+
+            // 🔥 Delete old avatar if exists
+            if (user.avatarPublicId) {
+                await deleteFromCloudinary(user.avatarPublicId);
+            }
+
+            // 🔥 Upload new avatar
+            const uploadedImage = await uploadToCloudinary(
+                req.file.path,
+                "profile_pictures"
+            );
+
+            // Save to user
+            user.avatar = uploadedImage.url;
+            user.avatarPublicId = uploadedImage.public_id;
+
+            await user.save();
+
+            res.status(200).json({
+                message: "Profile picture updated successfully",
+                avatar: user.avatar,
+            });
+        } catch (error) {
+            console.error("Profile avatar upload error:", error);
+            res.status(500).json({ error: "Failed to update profile picture" });
+        }
+    }
+);
+
+// ============================
+// DELETE PROFILE AVATAR
+// ============================
+router.delete("/profile/avatar", protect, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+
+        if (!user || !user.avatarPublicId) {
+            return res.status(404).json({ error: "No profile image found" });
+        }
+
+        await deleteFromCloudinary(user.avatarPublicId);
+
+        user.avatar = "";
+        user.avatarPublicId = "";
+
+        await user.save();
+
+        res.status(200).json({ message: "Profile picture removed successfully" });
+    } catch (error) {
+        console.error("Delete profile avatar error:", error);
+        res.status(500).json({ error: "Failed to delete profile picture" });
+    }
+});
+
+
 export default router;
