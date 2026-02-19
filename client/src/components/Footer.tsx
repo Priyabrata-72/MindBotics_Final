@@ -8,7 +8,7 @@ import {
   Instagram,
   Youtube,
 } from "lucide-react";
-import mindBoticsLogo from "@/assets/mindbotics-logo.png";
+// import mindBoticsLogo from "@/assets/mindbotics-logo.png";
 import { Link, useNavigate } from "react-router-dom";
 
 const Footer = () => {
