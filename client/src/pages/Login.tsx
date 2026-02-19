@@ -17,7 +17,7 @@ import Footer from "@/components/Footer";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
 
-// import mindBoticsLogo from "src/mindbotics-logo.jpg";
+import logo from "../assets/mindbotics-logo.jpg";
 import login1 from "@/assets/login_1.png";
 
 const Login: React.FC = () => {
@@ -101,7 +101,7 @@ const Login: React.FC = () => {
             <Card className="w-full max-w-md border-none shadow-none bg-transparent">
               <CardHeader className="text-center">
                 <div className="flex justify-center mb-4">
-                  <img src="/mindbotics-logo.jpg" alt="MindBotics" className="h-16" />
+                  <img src={logo} alt="MindBotics" className="h-16" />
                 </div>
 
                 <CardTitle className="text-2xl font-bold bg-gradient-to-r from-[#4f46e5] to-[#8b5cf6] bg-clip-text text-transparent">
