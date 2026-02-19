@@ -167,7 +167,7 @@ const ProductDetail = () => {
                   {product.specifications.map((spec, index) => (
                     <div
                       key={index}
-                      className="flex justify-between items-start border-b border-gray-200 pb-3 last:border-0"
+                      className="items-start border-b border-gray-200 pb-3 last:border-0"
                     >
                       <span className="font-medium text-gray-700">
                         {spec.label}
