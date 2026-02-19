@@ -41,7 +41,14 @@ const userSchema = new mongoose.Schema(
     resetOtpExpiry: { type: Date, select: false },
     resetAttempts: { type: Number, default: 0, select: false },
     // Profile
-    avatar: { type: String },
+
+    avatar: {
+      type: String,
+    },
+
+    avatarPublicId: {
+      type: String,
+    },
     googleId: { type: String, unique: true, sparse: true },
     authProvider: { type: String, enum: ["local", "google"], default: "local" },
   },
