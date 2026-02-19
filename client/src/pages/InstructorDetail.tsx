@@ -7,9 +7,9 @@ import { Award, BookOpen, Users, Star, ArrowLeft, Linkedin, Twitter } from "luci
 import instructor1 from "../assets/instructor-1.jpeg";
 import instructor2 from "../assets/instructor-2.jpeg";
 import instructor3 from "../assets/instructor-3.jpeg";
-import course1 from "@/assets/course-1.jpg";
-import course5 from "@/assets/course-5.jpeg";
-import course3 from "@/assets/course-3.jpg";
+import course1 from "@/assets/about-1.jpg";
+import course5 from "@/assets/gallery-2.jpg";
+import course3 from "@/assets/gallery4.jpeg";
 
 const instructorsData: Record<string, {
   name: string;
