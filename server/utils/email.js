@@ -6,25 +6,16 @@ const createTransporter = () => {
     port: process.env.EMAIL_PORT,
     user: process.env.EMAIL_USER,
   });
-
   return nodemailer.createTransport({
-    // host: process.env.EMAIL_HOST,
-    // port: Number(process.env.EMAIL_PORT),
-    // secure: Number(process.env.EMAIL_PORT) === 465, // keep your logic
-    service: "gmail",
+    host: process.env.EMAIL_HOST,
+    port: Number(process.env.EMAIL_PORT),
+    secure: Number(process.env.EMAIL_PORT) === 465,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD,
     },
-    requireTLS: true, // ✅ important fix
-    tls: {
-      rejectUnauthorized: false, // ✅ important for Render
-    },
-    connectionTimeout: 10000, // ✅ prevent long timeout
-    greetingTimeout: 10000,
   });
 };
-
 
 export const sendOtpEmail = async (email, otp, purpose = 'signup') => {
   const subject =
