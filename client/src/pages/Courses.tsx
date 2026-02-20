@@ -186,7 +186,7 @@ const Courses = () => {
         </div>
       </section>
 
-      <TutorsSection />
+      {/* <TutorsSection /> */}
       <Footer />
     </div>
   );
