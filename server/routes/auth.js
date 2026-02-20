@@ -60,25 +60,7 @@ router.post(
                 return res.status(500).json({ error: "Invalid OTP expiry configuration" });
             }
 
-            if (user) {
-                // Update existing unverified user
-                user.username = username; // ✅ added
-                user.password = password; // in case user re-signs up
-                user.otpHash = otpHash;
-                user.otpExpiry = otpExpiry;
-                user.otpAttempts = 0;
-                await user.save();
-            } else {
-                // Create new user
-                user = await User.create({
-                    email,
-                    username, // ✅ added
-                    password,
-                    otpHash,
-                    otpExpiry,
-                    otpAttempts: 0,
-                });
-            }
+            
 
             await sendOtpEmail(user.email, otp, "signup");
 
@@ -145,6 +127,25 @@ router.post(
                 });
             }
 
+            if (user) {
+                // Update existing unverified user
+                user.username = username; // ✅ added
+                user.password = password; // in case user re-signs up
+                user.otpHash = otpHash;
+                user.otpExpiry = otpExpiry;
+                user.otpAttempts = 0;
+                await user.save();
+            } else {
+                // Create new user
+                user = await User.create({
+                    email,
+                    username, // ✅ added
+                    password,
+                    otpHash,
+                    otpExpiry,
+                    otpAttempts: 0,
+                });
+            }
             // Success
             user.isVerified = true;
             user.otpHash = undefined;
