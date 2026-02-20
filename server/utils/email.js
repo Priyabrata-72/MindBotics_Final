@@ -29,7 +29,7 @@ export const sendOtpEmail = async (email, otp, purpose = 'signup') => {
           <!-- Logo -->
           <tr>
             <td align="center" style="padding-bottom:15px;">
-              <img src="publi/mindbotics-logo.jpg"
+              <img src="/client/src/assets/mindbotics-logo.svg"
                    width="140"
                    alt="MindBotics Logo"
                    style="border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.1);" />
