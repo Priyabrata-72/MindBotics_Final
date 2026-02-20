@@ -4,6 +4,7 @@ import PageBanner from "@/components/PageBanner";
 import MissionVision from "@/components/MissionVision";
 import WhyChooseUs from "@/components/WhyChooseUs";
 import TeamSection from "@/components/TeamSection";
+import FAQSection from "@/components/FAQSection";
 import StatsSection from "@/components/StatsSection";
 import about1 from "@/assets/about-1.jpg";
 import about2 from "@/assets/about-2.jpg";
@@ -12,7 +13,7 @@ const About = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
-      
+
       <PageBanner
         title="About Us"
         breadcrumbs={[
@@ -109,7 +110,8 @@ const About = () => {
 
       <MissionVision />
       <WhyChooseUs />
-      <TeamSection />
+      {/* <TeamSection /> */}
+      <FAQSection />
       <StatsSection />
       {/* <FaqPage /> */}
       <Footer />
