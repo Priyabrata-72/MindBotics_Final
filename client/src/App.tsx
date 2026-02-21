@@ -32,7 +32,7 @@ import AdminRoute from "./components/AdminRoute";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "@/context/AuthContext";
-import ThreeDPrintingSection from "./components/ThreeDPrintingSection";
+import ThreeDManagement from "./pages/admin/ThreeDManagement";
 
 const queryClient = new QueryClient();
 
@@ -72,7 +72,7 @@ const App = () => {
                 <Route path="courses" element={<CourseManagement />} />
                 <Route path="projects" element={<ProjectManagement />} />
                 <Route path="contacts" element={<ContactUserManagement />} />
-                <Route path="shop" element={<ThreeDPrintingSection />} />
+                <Route path="shop" element={<ThreeDManagement />} />
               </Route>
 
               <Route path="/" element={<Index />} />
