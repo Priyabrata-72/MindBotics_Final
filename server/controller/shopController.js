@@ -8,7 +8,7 @@ import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinaryHel
    @access  Public
 ========================================================= */
 const getProducts = asyncHandler(async (req, res) => {
-  const products = await Product.find({ status: "active" }).sort({
+  const products = await Product.find().sort({
     createdAt: -1,
   });
 
@@ -62,7 +62,7 @@ const getProductById = asyncHandler(async (req, res) => {
 ========================================================= */
 const createProduct = asyncHandler(async (req, res) => {
   try {
-    const { name, description, category, price, stock } = req.body;
+    const { name, description, category } = req.body;
 
     let imageData = { url: "", public_id: "" };
 
@@ -86,8 +86,6 @@ const createProduct = asyncHandler(async (req, res) => {
       name,
       description: description || "",
       category: category || "General",
-      price: Number(price) || 0,
-      stock: Number(stock) || 0,
       image: imageData,
       status: "active",
     });
@@ -113,7 +111,7 @@ const createProduct = asyncHandler(async (req, res) => {
 ========================================================= */
 const updateProduct = asyncHandler(async (req, res) => {
   try {
-    const { name, description, category, price, stock, status } = req.body;
+    const { name, description, status } = req.body;
 
     const product = await Product.findById(req.params.id);
 
@@ -121,10 +119,6 @@ const updateProduct = asyncHandler(async (req, res) => {
       product.name = name || product.name;
       product.description = description || product.description;
       product.category = category || product.category;
-      product.price =
-        price !== undefined ? Number(price) : product.price;
-      product.stock =
-        stock !== undefined ? Number(stock) : product.stock;
       product.status = status || product.status;
 
       const file =

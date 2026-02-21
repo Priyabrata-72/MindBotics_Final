@@ -69,7 +69,7 @@ const ShopManagement = () => {
     try {
       setLoading(true);
 
-      const res = await api.get("/admin/shop");
+      const res = await api.get("/admin/all");
 
       // backend returns: { products, page, pages, total }
       const productData = res.data?.products || [];
