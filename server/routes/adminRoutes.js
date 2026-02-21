@@ -26,6 +26,15 @@ import {
   deleteProject as deleteProjectAdmin
 } from "../controller/projectController.js";
 
+import {
+  getProducts,
+  getAdminProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+} from "../controller/shopController.js";
+
 import { protect, admin } from "../middleware/authMiddleware.js";
 import upload from "../middleware/upload.js";
 
@@ -65,5 +74,14 @@ router.get("/projects/:id", getProjectById);
 router.post("/projects", upload.any(), createProjectAdmin);
 router.put("/projects/:id", upload.any(), updateProjectAdmin);
 router.delete("/projects/:id", deleteProjectAdmin);
+
+// ---------------- 3D MODEL MANAGEMENT ----------------
+router.get("/", getProducts);
+router.get("/:id", getProductById);
+
+router.get("/admin/all", getAdminProducts);
+router.post("/", createProduct);
+router.put("/:id", updateProduct);
+router.delete("/:id", deleteProduct);
 
 export default router;
