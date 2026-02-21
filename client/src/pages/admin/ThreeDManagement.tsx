@@ -125,7 +125,7 @@ const ShopManagement = () => {
         formData.append("image", image);
       }
 
-      const res = await api.post("/shop", formData, {
+      const res = await api.post("/admin/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -149,7 +149,7 @@ const ShopManagement = () => {
     if (!confirm("Delete this product?")) return;
 
     try {
-      await api.delete(`/shop/${id}`);
+      await api.delete(`/admin/${id}`);
 
       setProducts((prev) =>
         prev.filter((p) => p._id !== id)
