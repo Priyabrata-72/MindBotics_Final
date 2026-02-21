@@ -27,9 +27,7 @@ import {
 } from "../controller/projectController.js";
 
 import {
-  getProducts,
   getAdminProducts,
-  getProductById,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -76,10 +74,8 @@ router.put("/projects/:id", upload.any(), updateProjectAdmin);
 router.delete("/projects/:id", deleteProjectAdmin);
 
 // ---------------- 3D MODEL MANAGEMENT ----------------
-router.get("/shop", getProducts);
-router.get("/:id", getProductById);
 
-router.get("/admin/all", getAdminProducts);
+router.get("/all", getAdminProducts);
 router.post("/", createProduct);
 router.put("/:id", updateProduct);
 router.delete("/:id", deleteProduct);
