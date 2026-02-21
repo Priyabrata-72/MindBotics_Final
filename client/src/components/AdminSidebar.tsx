@@ -19,7 +19,8 @@ import {
     MessageSquare,
     Settings,
     LogOut,
-    Home
+    Home,
+    Package
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -59,12 +60,17 @@ const AdminSidebar = () => {
             icon: Briefcase,
         },
         {
+            title: "3D Designs",
+            url: "/admin/shop",
+            icon: Package,
+        },
+        {
             title: "Contacts",
             url: "/admin/contacts",
             icon: MessageSquare,
         },
     ];
-
+    
     return (
         <Sidebar collapsible="icon">
             <SidebarHeader>

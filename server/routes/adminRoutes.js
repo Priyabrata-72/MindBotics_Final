@@ -76,7 +76,7 @@ router.put("/projects/:id", upload.any(), updateProjectAdmin);
 router.delete("/projects/:id", deleteProjectAdmin);
 
 // ---------------- 3D MODEL MANAGEMENT ----------------
-router.get("/", getProducts);
+router.get("/shop", getProducts);
 router.get("/:id", getProductById);
 
 router.get("/admin/all", getAdminProducts);
