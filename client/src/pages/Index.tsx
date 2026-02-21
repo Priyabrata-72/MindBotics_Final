@@ -6,6 +6,7 @@ import AboutSection from "@/components/AboutSection";
 import StatsSection from "@/components/StatsSection";
 import CoursesSection from "@/components/CoursesSection";
 import GallerySection from "@/components/GallerySection";
+import ThreeDPrintingSection from "@/components/ThreeDPrintingSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
@@ -30,6 +31,7 @@ const Index = () => {
         <StatsSection />
         <CoursesSection />
         <GallerySection />
+        <ThreeDPrintingSection />
         <TestimonialsSection />
         <CTASection />
       </main>

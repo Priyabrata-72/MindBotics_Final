@@ -5,11 +5,15 @@ import courseRoutes from "./courseRoutes.js";
 import projectRoutes from "./projectRoutes.js";
 import contactRoutes from "./contactRoutes.js";
 import feedbackRoutes from "./feedbackRoutes.js";
+import { getProducts } from "../controller/shopController.js";
 
 const router = express.Router();
 
 // Auth routes (mounted at /user)
 router.use("/user", authRout);
+
+// GET /api/shop
+router.get("/shop", getProducts);
 
 // Admin specific routes
 router.use("/admin", adminRoutes);
