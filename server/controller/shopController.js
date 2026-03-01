@@ -62,7 +62,11 @@ const getProductById = asyncHandler(async (req, res) => {
 ========================================================= */
 const createProduct = asyncHandler(async (req, res) => {
   try {
-    const { name, description, category } = req.body;
+    const { name, description, category } = req.body || {};
+
+    if (!name) {
+      return res.status(400).json({ message: "Product name is required" });
+    }
 
     let imageData = { url: "", public_id: "" };
 
@@ -77,11 +81,6 @@ const createProduct = asyncHandler(async (req, res) => {
       }
     }
 
-    if (!name) {
-      res.status(400);
-      throw new Error("Product name is required");
-    }
-
     const product = new Product({
       name,
       description: description || "",
@@ -91,9 +90,12 @@ const createProduct = asyncHandler(async (req, res) => {
     });
 
     const createdProduct = await product.save();
+
     res.status(201).json(createdProduct);
+
   } catch (error) {
     console.error("Product creation error:", error);
+
     res.status(500).json({
       message: error.message || "Failed to create product",
       error:
