@@ -125,7 +125,7 @@ const ShopManagement = () => {
         formData.append("image", image);
       }
 
-      const res = await api.post("/admin/", formData, {
+      const res = await api.post("/admin/add", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
