@@ -13,6 +13,7 @@ import InstructorDetail from "./pages/InstructorDetail";
 import Projects from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import Printing from "./pages/Shop";
+import ThreeDDetails from "./pages/ThreeDDetails";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -83,6 +84,7 @@ const App = () => {
               <Route path="/projects" element={<Projects />} />
               <Route path="/product/:productId" element={<ProductDetail />} />
               <Route path="/3d" element={<Printing />} />
+              <Route path="/printing/:productId" element={<ThreeDDetails />} />
               <Route path="/gallery" element={<Gallery />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />

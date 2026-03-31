@@ -68,34 +68,30 @@ const createProduct = asyncHandler(async (req, res) => {
       return res.status(400).json({ message: "Product name is required" });
     }
 
-    let imageData = { url: "", public_id: "" };
+    // ---------- Cloudinary Upload (SAME AS PROJECT) ----------
+    let uploadedImages = [];
 
-    const file =
-      req.file || (req.files && req.files.length > 0 ? req.files[0] : null);
+    if (req.files && req.files.length > 0) {
+      const uploadPromises = req.files.map((file) =>
+        cloudinary.uploader.upload(file.path, {
+          folder: "3d-products",
+        })
+      );
 
-    if (file) {
-      try {
-        imageData = await uploadToCloudinary(file.path, "3d-products");
-      } catch (uploadError) {
-        console.error("Cloudinary upload failed:", uploadError);
-      }
+      const results = await Promise.all(uploadPromises);
+
+      uploadedImages = results.map((result) => ({
+        url: result.secure_url,
+        public_id: result.public_id,
+      }));
     }
 
+    // ---------- Create Product ----------
     const product = new Product({
       name,
       description: description || "",
       category: category || "General",
-
-      // ✅ FIXED STRUCTURE
-      images: imageData.url
-        ? [
-          {
-            url: imageData.url,
-            public_id: imageData.public_id,
-          },
-        ]
-        : [],
-
+      images: uploadedImages, // ✅ SAME STRUCTURE
       status: "active",
     });
 
