@@ -43,7 +43,7 @@ interface Product {
   name: string;
   description: string;
   category?: string;
-//   price?: number;
+  //   price?: number;
   stock?: number;
   status?: string;
   image?: {
@@ -59,8 +59,8 @@ const ShopManagement = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("General");
-//   const [price, setPrice] = useState<number>(0);
-//   const [stock, setStock] = useState<number>(0);
+  //   const [price, setPrice] = useState<number>(0);
+  //   const [stock, setStock] = useState<number>(0);
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
 
@@ -115,32 +115,42 @@ const ShopManagement = () => {
 
     try {
       const formData = new FormData();
+
       formData.append("name", name);
       formData.append("description", description);
       formData.append("category", category);
-    //   formData.append("price", price.toString());
-    //   formData.append("stock", stock.toString());
 
       if (image) {
         formData.append("image", image);
       }
 
-      const res = await api.post("/admin/add", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      // 🔥 DEBUG (run once)
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
 
-      // backend may return { product } OR product directly
-      const newProduct =
-        res.data?.product || res.data;
+      // ✅ REMOVE headers
+      const res = await api.post("/admin/add", formData);
 
-      setProducts((prev) => [newProduct, ...prev]);
+      const newProduct = res.data?.product || res.data;
+
+      setProducts((prev: any) => [newProduct, ...prev]);
 
       toast.success("Product created successfully");
       setIsOpen(false);
       resetForm();
-    } catch (error) {
-      console.error(error);
-      toast.error("Creation failed");
+
+    } catch (error: any) {
+      console.error("FULL ERROR:", error);
+
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data ||
+        "Creation failed";
+
+      console.log("BACKEND ERROR:", error?.response?.data);
+
+      toast.error(msg);
     }
   };
 
