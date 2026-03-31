@@ -99,8 +99,8 @@ const ShopManagement = () => {
     setDescription("");
     setCategory("General");
 
-    setImage(null);
-    setImagePreview(null);
+    setImage([]);
+    setImagePreview([]);
   };
 
   /* ================= IMAGE CHANGE ================= */
