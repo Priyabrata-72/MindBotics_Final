@@ -61,8 +61,8 @@ const ShopManagement = () => {
   const [category, setCategory] = useState("General");
   //   const [price, setPrice] = useState<number>(0);
   //   const [stock, setStock] = useState<number>(0);
-  const [image, setImage] = useState<File | null>(null);
-  const [preview, setPreview] = useState("");
+  const [image, setImage] = useState<File[]>([]);
+  const [preview, setPreview] = useState<string[]>([]);
 
   /* ================= FETCH PRODUCTS ================= */
   const fetchProducts = async () => {
@@ -92,73 +92,67 @@ const ShopManagement = () => {
     setName("");
     setDescription("");
     setCategory("General");
-    // setPrice(0);
-    // setStock(0);
-    setImage(null);
-    setPreview("");
+
+    setImage([]);      // ✅ array reset
+    setPreview([]);    // ✅ array reset
   };
 
   /* ================= IMAGE CHANGE ================= */
   const handleImageChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setImage(file);
-      setPreview(URL.createObjectURL(file));
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+
+      setImage(files);
+
+      // preview multiple images
+      const previewUrls = files.map(file => URL.createObjectURL(file));
+      setPreview(previewUrls);
     }
   };
 
   /* ================= CREATE PRODUCT ================= */
   const handleCreate = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const formData = new FormData();
+    try {
+      const formData = new FormData();
 
-    formData.append("name", name);
-    formData.append("description", description);
-    formData.append("category", category);
+      formData.append("name", name);
+      formData.append("description", description);
+      formData.append("category", category);
 
-    // ✅ IMPORTANT: support array upload
-    if (image) {
-      if (Array.isArray(image)) {
+      // ✅ safe loop
+      if (image && image.length > 0) {
         image.forEach((img) => {
-          formData.append("image", img); // same key for multiple
+          formData.append("images", img);
         });
-      } else {
-        formData.append("image", image); // single fallback
       }
+
+      const res = await api.post("/admin/projects", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+
+      const newProduct = res.data?.product || res.data;
+
+      setProducts((prev: any) => [newProduct, ...prev]);
+
+      toast.success("Product created successfully");
+      setIsOpen(false);
+      resetForm();
+
+    } catch (error: any) {
+      console.error("FULL ERROR:", error);
+
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data ||
+        "Creation failed";
+
+      toast.error(msg);
     }
-
-    // 🔥 DEBUG
-    for (let pair of formData.entries()) {
-      console.log(pair[0], pair[1]);
-    }
-
-    const res = await api.post("/admin/add", formData);
-
-    const newProduct = res.data?.product || res.data;
-
-    setProducts((prev: any) => [newProduct, ...prev]);
-
-    toast.success("Product created successfully");
-    setIsOpen(false);
-    resetForm();
-
-  } catch (error: any) {
-    console.error("FULL ERROR:", error);
-
-    const msg =
-      error?.response?.data?.message ||
-      error?.response?.data ||
-      "Creation failed";
-
-    console.log("BACKEND ERROR:", error?.response?.data);
-
-    toast.error(msg);
-  }
-};
+  };
 
   /* ================= DELETE PRODUCT ================= */
   const handleDelete = async (id: string) => {
@@ -282,11 +276,17 @@ const ShopManagement = () => {
                   accept="image/*"
                   onChange={handleImageChange}
                 />
-                {preview && (
-                  <img
-                    src={preview}
-                    className="mt-2 w-24 h-24 object-cover rounded"
-                  />
+                {preview.length > 0 && (
+                  <div className="mt-2 flex gap-2 flex-wrap">
+                    {preview.map((src, index) => (
+                      <img
+                        key={index}
+                        src={src}
+                        className="w-24 h-24 object-cover rounded"
+                        alt={`preview-${index}`}
+                      />
+                    ))}
+                  </div>
                 )}
               </div>
 
