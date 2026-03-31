@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, Plus, Trash } from "lucide-react";
+import { MoreHorizontal, Plus, Trash , X , Upload } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,8 +61,8 @@ const ShopManagement = () => {
   const [category, setCategory] = useState("General");
   //   const [price, setPrice] = useState<number>(0);
   //   const [stock, setStock] = useState<number>(0);
-  const [image, setImage] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [image, setImage] = useState<File[]>([]);
+  const [imagePreview, setImagePreview] = useState<string[]>([]);
 
   /* ================= FETCH PRODUCTS ================= */
   const fetchProducts = async () => {
@@ -87,29 +87,30 @@ const ShopManagement = () => {
     fetchProducts();
   }, []);
 
+
+   const removeImage = (index: number) => {
+        setImage(prev => prev.filter((_, i) => i !== index));
+        setImagePreview(prev => prev.filter((_, i) => i !== index));
+    };
+
   /* ================= RESET FORM ================= */
   const resetForm = () => {
     setName("");
     setDescription("");
-    setCategory("");
+    setCategory("General");
 
     setImage(null);
-    setPreview(null);
+    setImagePreview(null);
   };
 
   /* ================= IMAGE CHANGE ================= */
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      setImage(prev => [...prev, ...files]);
 
-    if (file) {
-      setImage(file);
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-
-      reader.readAsDataURL(file);
+      const newPreviews = files.map(file => URL.createObjectURL(file));
+      setImagePreview(prev => [...prev, ...newPreviews]);
     }
   };
 
@@ -124,11 +125,12 @@ const ShopManagement = () => {
       formData.append("description", description);
       formData.append("category", category);
 
-      // ✅ SINGLE IMAGE
-      if (image) {
-        formData.append("image", image); // 👈 IMPORTANT: not "images"
-      }
+      // ✅ SINGLE IMAGE (NO forEach)
+      image.forEach(image => {
+        formData.append("images", image);
+      });
 
+      // ❌ REMOVE manual headers
       const res = await api.post("/admin/add", formData);
 
       const newProduct = res.data?.product || res.data;
@@ -260,32 +262,23 @@ const ShopManagement = () => {
                 </div> */}
               </div>
 
-              <div>
-                <Label>Image</Label>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
-                {preview && (
-                  <div className="mt-2">
-                    <img
-                      src={preview}
-                      className="w-24 h-24 object-cover rounded"
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setImage(null);
-                        setPreview(null);
-                      }}
-                      className="block mt-1 text-red-500 text-sm"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                )}
+              <div className="space-y-2">
+                <Label>Project Images</Label>
+                <div className="flex flex-wrap gap-4 items-center">
+                  <label className="border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:bg-gray-50 flex flex-col items-center justify-center w-32 h-32 transition-colors">
+                    <Upload className="h-6 w-6 text-gray-500 mb-2" />
+                    <span className="text-xs text-gray-500 text-center">Upload Images</span>
+                    <input type="file" multiple accept="image/*" onChange={handleImageChange} className="hidden" />
+                  </label>
+                  {imagePreview.map((src, index) => (
+                    <div key={index} className="relative w-32 h-32 border rounded-lg overflow-hidden group">
+                      <img src={src} alt="Preview" className="w-full h-full object-cover" />
+                      <button type="button" onClick={() => removeImage(index)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <DialogFooter>
