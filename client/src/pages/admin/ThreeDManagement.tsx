@@ -61,8 +61,8 @@ const ShopManagement = () => {
   const [category, setCategory] = useState("General");
   //   const [price, setPrice] = useState<number>(0);
   //   const [stock, setStock] = useState<number>(0);
-  const [image, setImage] = useState<File[]>([]);
-  const [preview, setPreview] = useState<string[]>([]);
+  const [image, setImage] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
 
   /* ================= FETCH PRODUCTS ================= */
   const fetchProducts = async () => {
@@ -91,24 +91,25 @@ const ShopManagement = () => {
   const resetForm = () => {
     setName("");
     setDescription("");
-    setCategory("General");
+    setCategory("");
 
-    setImage([]);      // ✅ array reset
-    setPreview([]);    // ✅ array reset
+    setImage(null);
+    setPreview(null);
   };
 
   /* ================= IMAGE CHANGE ================= */
-  const handleImageChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
 
-      setImage(files);
+    if (file) {
+      setImage(file);
 
-      // preview multiple images
-      const previewUrls = files.map(file => URL.createObjectURL(file));
-      setPreview(previewUrls);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+      };
+
+      reader.readAsDataURL(file);
     }
   };
 
@@ -123,17 +124,11 @@ const ShopManagement = () => {
       formData.append("description", description);
       formData.append("category", category);
 
-      // multiple images
-      image.forEach((img) => {
-        formData.append("images", img);
-      });
-
-      // DEBUG
-      for (let pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
+      // ✅ SINGLE IMAGE
+      if (image) {
+        formData.append("image", image); // 👈 IMPORTANT: not "images"
       }
 
-      // ⚠️ DO NOT manually set headers
       const res = await api.post("/admin/add", formData);
 
       const newProduct = res.data?.product || res.data;
@@ -145,14 +140,8 @@ const ShopManagement = () => {
       resetForm();
 
     } catch (error: any) {
-      console.error("FULL ERROR:", error);
-
-      const msg =
-        error?.response?.data?.message ||
-        error?.response?.data ||
-        "Creation failed";
-
-      toast.error(msg);
+      console.error(error);
+      toast.error(error?.response?.data?.message || "Creation failed");
     }
   };
 
@@ -278,16 +267,23 @@ const ShopManagement = () => {
                   accept="image/*"
                   onChange={handleImageChange}
                 />
-                {preview.length > 0 && (
-                  <div className="mt-2 flex gap-2 flex-wrap">
-                    {preview.map((src, index) => (
-                      <img
-                        key={index}
-                        src={src}
-                        className="w-24 h-24 object-cover rounded"
-                        alt={`preview-${index}`}
-                      />
-                    ))}
+                {preview && (
+                  <div className="mt-2">
+                    <img
+                      src={preview}
+                      className="w-24 h-24 object-cover rounded"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImage(null);
+                        setPreview(null);
+                      }}
+                      className="block mt-1 text-red-500 text-sm"
+                    >
+                      Remove
+                    </button>
                   </div>
                 )}
               </div>
