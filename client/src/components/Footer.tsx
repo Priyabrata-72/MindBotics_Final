@@ -158,8 +158,8 @@ const Footer = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/feedback" className="text-background/65 hover:text-primary transition">
-                    Feedback
+                  <Link to="/3d" className="text-background/65 hover:text-primary transition">
+                    3D Design
                   </Link>
                 </li>
               </ul>

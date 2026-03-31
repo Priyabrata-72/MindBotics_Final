@@ -32,7 +32,7 @@ interface Product {
   category: string;
 }
 
-const Shop = () => {
+const Printing = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +43,7 @@ const Shop = () => {
       try {
         setLoading(true);
 
-        const res = await api.get("/shop");
+        const res = await api.get("/3d");
 
         if (res.status === 200) {
           const rawData: RawProduct[] =
@@ -177,4 +177,4 @@ const Shop = () => {
   );
 };
 
-export default Shop;
+export default Printing;

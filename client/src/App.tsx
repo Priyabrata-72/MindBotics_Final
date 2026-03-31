@@ -12,7 +12,7 @@ import CourseDetail from "./pages/CourseDetail";
 import InstructorDetail from "./pages/InstructorDetail";
 import Projects from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
-import Shop from "./pages/Shop";
+import Printing from "./pages/Shop";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -82,7 +82,7 @@ const App = () => {
               <Route path="/instructor/:instructorId" element={<InstructorDetail />} />
               <Route path="/projects" element={<Projects />} />
               <Route path="/product/:productId" element={<ProductDetail />} />
-              <Route path="/shop" element={<Shop />} />
+              <Route path="/3d" element={<Printing />} />
               <Route path="/gallery" element={<Gallery />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />
