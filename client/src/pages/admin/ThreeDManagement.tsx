@@ -123,16 +123,18 @@ const ShopManagement = () => {
       formData.append("description", description);
       formData.append("category", category);
 
-      // ✅ safe loop
-      if (image && image.length > 0) {
-        image.forEach((img) => {
-          formData.append("images", img);
-        });
+      // multiple images
+      image.forEach((img) => {
+        formData.append("images", img);
+      });
+
+      // DEBUG
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
       }
 
-      const res = await api.post("/admin/add", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+      // ⚠️ DO NOT manually set headers
+      const res = await api.post("/admin/add", formData);
 
       const newProduct = res.data?.product || res.data;
 
