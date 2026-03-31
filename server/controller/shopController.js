@@ -68,23 +68,18 @@ const createProduct = asyncHandler(async (req, res) => {
       return res.status(400).json({ message: "Product name is required" });
     }
 
-    // ---------- Cloudinary Upload (SAME AS PROJECT) ----------
+    // ---------- Cloudinary Upload ----------
     let imageData = [];
     
-      if (req.files && req.files.length > 0) {
-        const uploadPromises = req.files.map((file) =>
-          cloudinary.uploader.upload(file.path, {
-            folder: "projects",
-          })
-        );
-    
-        const results = await Promise.all(uploadPromises);
-    
-        imageData = results.map((result) => ({
-          url: result.secure_url,
-          public_id: result.public_id,
-        }));
-      }
+    if (req.files && req.files.length > 0) {
+      const uploadPromises = req.files.map((file) =>
+        uploadToCloudinary(file.path, "3d-products")
+      );
+  
+      const results = await Promise.all(uploadPromises);
+  
+      imageData = results;
+    }
 
     // ---------- Create Product ----------
     const product = new Product({
@@ -115,7 +110,7 @@ const createProduct = asyncHandler(async (req, res) => {
 ========================================================= */
 const updateProduct = asyncHandler(async (req, res) => {
   try {
-    const { name, description, status } = req.body;
+    const { name, description, category, status } = req.body;
 
     const product = await Product.findById(req.params.id);
 
@@ -133,8 +128,12 @@ const updateProduct = asyncHandler(async (req, res) => {
 
       if (file) {
         try {
-          if (product.image && product.image.public_id) {
-            await deleteFromCloudinary(product.image.public_id);
+          if (product.images && product.images.length > 0) {
+            for (const img of product.images) {
+              if (img.public_id) {
+                await deleteFromCloudinary(img.public_id);
+              }
+            }
           }
 
           const imageData = await uploadToCloudinary(
@@ -142,7 +141,7 @@ const updateProduct = asyncHandler(async (req, res) => {
             "3d-products"
           );
 
-          product.image = imageData;
+          product.images = [imageData];
         } catch (imgError) {
           console.error("Image update failed:", imgError);
         }
@@ -175,8 +174,12 @@ const deleteProduct = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id);
 
   if (product) {
-    if (product.image && product.image.public_id) {
-      await deleteFromCloudinary(product.image.public_id);
+    if (product.images && product.images.length > 0) {
+      for (const img of product.images) {
+        if (img.public_id) {
+          await deleteFromCloudinary(img.public_id);
+        }
+      }
     }
 
     await product.deleteOne();
