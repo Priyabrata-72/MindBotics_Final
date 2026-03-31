@@ -111,48 +111,54 @@ const ShopManagement = () => {
 
   /* ================= CREATE PRODUCT ================= */
   const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      const formData = new FormData();
+  try {
+    const formData = new FormData();
 
-      formData.append("name", name);
-      formData.append("description", description);
-      formData.append("category", category);
+    formData.append("name", name);
+    formData.append("description", description);
+    formData.append("category", category);
 
-      if (image) {
-        formData.append("image", image);
+    // ✅ IMPORTANT: support array upload
+    if (image) {
+      if (Array.isArray(image)) {
+        image.forEach((img) => {
+          formData.append("image", img); // same key for multiple
+        });
+      } else {
+        formData.append("image", image); // single fallback
       }
-
-      // 🔥 DEBUG (run once)
-      for (let pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
-      }
-
-      // ✅ REMOVE headers
-      const res = await api.post("/admin/add", formData);
-
-      const newProduct = res.data?.product || res.data;
-
-      setProducts((prev: any) => [newProduct, ...prev]);
-
-      toast.success("Product created successfully");
-      setIsOpen(false);
-      resetForm();
-
-    } catch (error: any) {
-      console.error("FULL ERROR:", error);
-
-      const msg =
-        error?.response?.data?.message ||
-        error?.response?.data ||
-        "Creation failed";
-
-      console.log("BACKEND ERROR:", error?.response?.data);
-
-      toast.error(msg);
     }
-  };
+
+    // 🔥 DEBUG
+    for (let pair of formData.entries()) {
+      console.log(pair[0], pair[1]);
+    }
+
+    const res = await api.post("/admin/add", formData);
+
+    const newProduct = res.data?.product || res.data;
+
+    setProducts((prev: any) => [newProduct, ...prev]);
+
+    toast.success("Product created successfully");
+    setIsOpen(false);
+    resetForm();
+
+  } catch (error: any) {
+    console.error("FULL ERROR:", error);
+
+    const msg =
+      error?.response?.data?.message ||
+      error?.response?.data ||
+      "Creation failed";
+
+    console.log("BACKEND ERROR:", error?.response?.data);
+
+    toast.error(msg);
+  }
+};
 
   /* ================= DELETE PRODUCT ================= */
   const handleDelete = async (id: string) => {
