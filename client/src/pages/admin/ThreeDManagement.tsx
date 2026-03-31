@@ -130,8 +130,9 @@ const ShopManagement = () => {
         formData.append("images", image);
       });
 
-      // ❌ REMOVE manual headers
-      const res = await api.post("/admin/add", formData);
+      const res = await api.post("/admin/add", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
 
       const newProduct = res.data?.product || res.data;
 
