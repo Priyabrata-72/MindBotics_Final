@@ -130,7 +130,7 @@ const ShopManagement = () => {
         });
       }
 
-      const res = await api.post("/admin/projects", formData, {
+      const res = await api.post("/admin/add", formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
 
