@@ -85,7 +85,7 @@ const createProduct = asyncHandler(async (req, res) => {
       name,
       description: description || "",
       category: category || "General",
-      images: uploadedImages, // ✅ SAME STRUCTURE
+      images: imageData, // ✅ SAME STRUCTURE
       status: "active",
     });
 
