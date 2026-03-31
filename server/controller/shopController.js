@@ -69,21 +69,15 @@ const createProduct = asyncHandler(async (req, res) => {
     }
 
     // ---------- Cloudinary Upload (SAME AS PROJECT) ----------
-    let uploadedImages = [];
+    let imageData = { url: "", public_id: "" };
+    const file = req.file || (req.files && req.files.length > 0 ? req.files[0] : null);
 
-    if (req.files && req.files.length > 0) {
-      const uploadPromises = req.files.map((file) =>
-        cloudinary.uploader.upload(file.path, {
-          folder: "3d-products",
-        })
-      );
-
-      const results = await Promise.all(uploadPromises);
-
-      uploadedImages = results.map((result) => ({
-        url: result.secure_url,
-        public_id: result.public_id,
-      }));
+    if (file) {
+      try {
+        imageData = await uploadToCloudinary(file.path, 'courses');
+      } catch (uploadError) {
+        console.error("Cloudinary upload failed:", uploadError);
+      }
     }
 
     // ---------- Create Product ----------
