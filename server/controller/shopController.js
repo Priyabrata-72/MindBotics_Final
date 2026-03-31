@@ -85,23 +85,29 @@ const createProduct = asyncHandler(async (req, res) => {
       name,
       description: description || "",
       category: category || "General",
-      image: imageData,
+
+      // ✅ FIXED STRUCTURE
+      images: imageData.url
+        ? [
+          {
+            url: imageData.url,
+            public_id: imageData.public_id,
+          },
+        ]
+        : [],
+
       status: "active",
     });
 
     const createdProduct = await product.save();
 
-    res.status(201).json(createdProduct);
+    res.status(201).json({ product: createdProduct });
 
   } catch (error) {
     console.error("Product creation error:", error);
 
     res.status(500).json({
       message: error.message || "Failed to create product",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.stack
-          : undefined,
     });
   }
 });

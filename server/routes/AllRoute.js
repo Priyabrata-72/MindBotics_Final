@@ -13,7 +13,7 @@ const router = express.Router();
 router.use("/user", authRout);
 
 // GET /api/shop
-router.get("/shop", getProducts);
+router.get("/3d", getProducts);
 
 // Admin specific routes
 router.use("/admin", adminRoutes);

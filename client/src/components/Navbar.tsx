@@ -10,7 +10,7 @@ const navLinks = [
   { name: "About Us", href: "/about" },
   { name: "Courses", href: "/courses" },
   { name: "Projects", href: "/projects" },
-  { name: "3D Design", href: "/shop" },
+  { name: "3D Design", href: "/3d" },
   { name: "Contact Us", href: "/contact" },
   { name: "Feedback", href: "/feedback" },
 ];
