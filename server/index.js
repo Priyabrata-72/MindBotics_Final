@@ -25,14 +25,15 @@ const PORT = process.env.PORT || 5000;
 // ].filter(Boolean);
 
 app.use(
-  cors({
-    origin: [
-      "https://mind-botics.onrender.com",
-      "https://www.mindbotics.in",
-      "https://mindbotics.in"
-    ],
-    credentials: true
-  })
+    cors({
+        origin: [
+            "http://localhost:8080",
+            "https://mind-botics.onrender.com",
+            "https://www.mindbotics.in",
+            "https://mindbotics.in"
+        ],
+        credentials: true
+    })
 );
 
 // Body parsers
