@@ -265,20 +265,20 @@ const ShopManagement = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="Models">
+                      Models
+                    </SelectItem>
                     <SelectItem value="Kits">
                       Kits
                     </SelectItem>
-                    <SelectItem value="Boards">
-                      Boards
+                    <SelectItem value="3D Printing">
+                      3D Printing
                     </SelectItem>
                     <SelectItem value="Components">
                       Components
                     </SelectItem>
                     <SelectItem value="Robotics">
                       Robotics
-                    </SelectItem>
-                    <SelectItem value="Tools">
-                      Tools
                     </SelectItem>
                   </SelectContent>
                 </Select>
