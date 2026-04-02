@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PageBanner from "@/components/PageBanner";
-import ProductCard from "@/components/ProductCard";
+import ThreeDProductCard from "@/components/ThreeDProductCard";
 import Loader from "@/components/Loader";
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -145,7 +145,7 @@ const Printing = () => {
                 {filteredProducts
                   .slice(0, visibleProducts)
                   .map((product) => (
-                    <ProductCard
+                    <ThreeDProductCard
                       key={product.id}
                       id={product.id}
                       image={product.image}

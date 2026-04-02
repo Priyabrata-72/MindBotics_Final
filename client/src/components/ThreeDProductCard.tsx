@@ -2,7 +2,7 @@ import { Eye, Contact } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 
-interface ProductCardProps {
+interface ThreeDProductCardProps {
   id?: string;
   image: string;
   name: string;
@@ -11,13 +11,13 @@ interface ProductCardProps {
   onAddToCart?: () => void;
 }
 
-const ProductCard = ({
+const ThreeDProductCard = ({
   id,
   image,
   name,
   description,
   category,
-}: ProductCardProps) => {
+}: ThreeDProductCardProps) => {
   const navigate = useNavigate();
   const productSlug = id || name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
@@ -41,7 +41,7 @@ const ProductCard = ({
         {/* Hover Actions */}
         <div className="absolute inset-0 bg-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
           <Link
-            to={`/product/${productSlug}`}
+            to={`/3d/${productSlug}`}
             className="w-10 h-10 rounded-full bg-card flex items-center justify-center text-foreground hover:bg-primary hover:text-primary-foreground transition-colors transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-100"
           >
             <Eye className="w-5 h-5" />
@@ -57,7 +57,7 @@ const ProductCard = ({
 
       {/* Content */}
       <div className="p-6">
-        <Link to={`/product/${productSlug}`}>
+        <Link to={`/3d/${productSlug}`}>
           <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
             {name}
           </h3>
@@ -72,4 +72,4 @@ const ProductCard = ({
   );
 };
 
-export default ProductCard;
+export default ThreeDProductCard;
