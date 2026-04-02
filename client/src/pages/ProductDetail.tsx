@@ -7,6 +7,7 @@ import { Link, useParams } from "react-router-dom";
 import { ShoppingCart, ArrowLeft, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import api from "@/lib/api";
+import Loader from "@/components/Loader";
 
 interface ProductType {
   _id: string;
@@ -51,11 +52,7 @@ const ProductDetail = () => {
   }, [productId]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-lg font-semibold">Loading...</p>
-      </div>
-    );
+    return <Loader />
   }
 
   if (!product) {
