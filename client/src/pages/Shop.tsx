@@ -9,11 +9,11 @@ import { Button } from "@/components/ui/button";
 
 const categories = [
   "All",
+  "Models",
   "Kits",
-  "Boards",
+  "3D Printing",
   "Components",
   "Robotics",
-  "Tools",
 ];
 
 interface RawProduct {
@@ -57,7 +57,7 @@ const Printing = () => {
                 : "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=800",
             name: p.name,
             description: p.description,
-            category: p.category || "General",
+            category: p.category || "Models",
           }));
 
           setProducts(normalizedProducts);
@@ -89,10 +89,10 @@ const Printing = () => {
       <Navbar />
 
       <PageBanner
-        title="Shop"
+        title="3D"
         breadcrumbs={[
           { label: "Home", href: "/" },
-          { label: "Shop" },
+          { label: "3D", href: "/3d" },
         ]}
       />
 
