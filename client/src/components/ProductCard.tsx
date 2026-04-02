@@ -41,7 +41,7 @@ const ProductCard = ({
         {/* Hover Actions */}
         <div className="absolute inset-0 bg-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
           <Link
-            to={`/product/${productSlug}`}
+            to={`/3d/${productSlug}`}
             className="w-10 h-10 rounded-full bg-card flex items-center justify-center text-foreground hover:bg-primary hover:text-primary-foreground transition-colors transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-100"
           >
             <Eye className="w-5 h-5" />
