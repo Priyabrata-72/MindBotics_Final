@@ -4,7 +4,7 @@ import Footer from "@/components/Footer";
 import PageBanner from "@/components/PageBanner";
 import { Button } from "@/components/ui/button";
 import { Link, useParams } from "react-router-dom";
-import { ShoppingCart, ArrowLeft, Check } from "lucide-react";
+import { ShoppingCart, ArrowLeft, Check, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import api from "@/lib/api";
 import Loader from "@/components/Loader";
@@ -124,6 +124,15 @@ const ProductDetail = () => {
               <p className="text-gray-600 text-lg leading-relaxed mb-6">
                 {product.fullDescription || product.description}
               </p>
+
+              <div className="mb-8">
+                <Link to="/contact">
+                   <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md border-0 text-base font-semibold transition-all">
+                      <Mail className="w-5 h-5 mr-2" />
+                      Contact Us
+                   </Button>
+                </Link>
+              </div>
 
               {/* Features */}
               {product.features?.length ? (
