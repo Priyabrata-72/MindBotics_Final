@@ -31,6 +31,7 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  deleteProductReview,
 } from "../controller/shopController.js";
 
 import { protect, admin } from "../middleware/authMiddleware.js";
@@ -79,5 +80,6 @@ router.get("/all", getAdminProducts);
 router.post("/add", upload.any(), createProduct);
 router.put("/:id", upload.any(), updateProduct);
 router.delete("/:id", deleteProduct);
+router.delete("/:productId/reviews/:reviewId", deleteProductReview);
 
 export default router;
