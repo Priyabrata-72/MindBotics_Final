@@ -233,6 +233,43 @@ const createProductReview = asyncHandler(async (req, res) => {
   }
 });
 
+/* =========================================================
+   @desc    Delete a review from a 3D product
+   @route   DELETE /api/admin/:productId/reviews/:reviewId
+   @access  Private/Admin
+========================================================= */
+const deleteProductReview = asyncHandler(async (req, res) => {
+  const { productId, reviewId } = req.params;
+
+  const product = await Product.findById(productId);
+
+  if (product) {
+    const reviewIndex = product.reviews.findIndex(
+      (r) => r._id.toString() === reviewId
+    );
+
+    if (reviewIndex !== -1) {
+      product.reviews.splice(reviewIndex, 1);
+
+      product.numReviews = product.reviews.length;
+      product.rating =
+        product.reviews.length > 0
+          ? product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+            product.reviews.length
+          : 0;
+
+      await product.save();
+      res.json({ message: "Review deleted successfully" });
+    } else {
+      res.status(404);
+      throw new Error("Review not found");
+    }
+  } else {
+    res.status(404);
+    throw new Error("Product not found");
+  }
+});
+
 export {
   getProducts,
   getAdminProducts,
@@ -241,4 +278,5 @@ export {
   updateProduct,
   deleteProduct,
   createProductReview,
+  deleteProductReview,
 };

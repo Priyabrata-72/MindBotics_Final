@@ -49,12 +49,22 @@ interface Product {
   image?: {
     url: string;
   };
+  reviews?: {
+    _id: string;
+    name: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+  }[];
 }
 
 const ShopManagement = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  
+  const [isReviewsOpen, setIsReviewsOpen] = useState<boolean>(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -163,6 +173,40 @@ const ShopManagement = () => {
     } catch (error) {
       console.error(error);
       toast.error("Delete failed");
+    }
+  };
+
+  /* ================= DELETE REVIEW ================= */
+  const handleDeleteReview = async (productId: string, reviewId: string) => {
+    if (!confirm("Are you sure you want to delete this review?")) return;
+
+    try {
+      await api.delete(`/admin/${productId}/reviews/${reviewId}`);
+      toast.success("Review deleted successfully");
+      
+      // Update local state to remove the review instantly
+      setProducts((prevP) =>
+        prevP.map((p) => {
+          if (p._id === productId && p.reviews) {
+            return {
+              ...p,
+              reviews: p.reviews.filter(r => r._id !== reviewId)
+            };
+          }
+          return p;
+        })
+      );
+      
+      if (selectedProduct && selectedProduct._id === productId && selectedProduct.reviews) {
+        setSelectedProduct({
+          ...selectedProduct,
+          reviews: selectedProduct.reviews.filter(r => r._id !== reviewId)
+        });
+      }
+
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete review");
     }
   };
 
@@ -302,6 +346,7 @@ const ShopManagement = () => {
               {/* <TableHead>Price</TableHead> */}
               {/* <TableHead>Stock</TableHead> */}
               <TableHead>Status</TableHead>
+              <TableHead>Reviews</TableHead>
               <TableHead className="text-right">
                 Actions
               </TableHead>
@@ -339,6 +384,9 @@ const ShopManagement = () => {
                     {product.status || "active"}
                   </Badge>
                 </TableCell>
+                <TableCell>
+                  {product.reviews?.length || 0}
+                </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -354,6 +402,15 @@ const ShopManagement = () => {
                       <DropdownMenuLabel>
                         Actions
                       </DropdownMenuLabel>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setSelectedProduct(product);
+                          setIsReviewsOpen(true);
+                        }}
+                      >
+                        <MoreHorizontal className="mr-2 h-4 w-4" />
+                        View Reviews
+                      </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() =>
                           handleDelete(product._id)
@@ -371,6 +428,42 @@ const ShopManagement = () => {
           </TableBody>
         </Table>
       </div>
+
+      {/* Reviews Modal */}
+      <Dialog open={isReviewsOpen} onOpenChange={setIsReviewsOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Reviews for {selectedProduct?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            {!selectedProduct?.reviews || selectedProduct.reviews.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">No reviews yet for this product.</p>
+            ) : (
+              selectedProduct.reviews.map((review) => (
+                <div key={review._id} className="border rounded-md p-4 flex justify-between items-start gap-4">
+                   <div className="flex-1">
+                      <div className="flex justify-between mb-2">
+                         <span className="font-semibold">{review.name}</span>
+                         <span className="text-yellow-500 font-medium">{review.rating} ⭐</span>
+                      </div>
+                      <p className="text-gray-600 text-sm mb-2">"{review.comment}"</p>
+                      <span className="text-xs text-gray-400">
+                        {new Date(review.createdAt).toLocaleDateString()}
+                      </span>
+                   </div>
+                   <Button 
+                      variant="ghost" 
+                      onClick={() => selectedProduct && handleDeleteReview(selectedProduct._id, review._id)}
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 h-auto flex-shrink-0"
+                    >
+                      <Trash className="w-4 h-4" />
+                    </Button>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
