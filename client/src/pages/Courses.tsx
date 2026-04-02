@@ -10,8 +10,8 @@ import api from "@/lib/api";
 
 const categories = [
   "All",
-  "Online",
-  "Offline",
+  "Online Program",
+  "Offline Program",
   "IoT",
   "Robotics",
   "Development",
