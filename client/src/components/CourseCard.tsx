@@ -64,7 +64,7 @@ const CourseCard = ({
         <div className="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
-            <span>{duration}</span>
+            <span>{duration} weeks</span>
           </div>
           <div className="flex items-center gap-1">
             <Star className="w-4 h-4 fill-primary text-primary" />
