@@ -229,7 +229,7 @@ const CourseDetail = () => {
                   <div className="space-y-4 mb-6">
                     <div className="flex items-center gap-3">
                       <Clock className="w-5 h-5 text-primary" />
-                      <span className="text-foreground">{course.duration}</span>
+                      <span className="text-foreground">{course.duration} weeks</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Star className="w-5 h-5 text-amber-500 fill-current" />
