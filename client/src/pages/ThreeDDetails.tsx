@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import Loader from "@/components/Loader";
 
 interface ReviewType {
   _id: string;
@@ -101,14 +102,7 @@ const ThreeDDesign = () => {
   }, [productId]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-900">
-        <div className="animate-pulse flex flex-col items-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 text-blue-600 font-medium tracking-wider">Loading System Data...</p>
-        </div>
-      </div>
-    );
+    return <Loader />
   }
 
   if (!product) {
