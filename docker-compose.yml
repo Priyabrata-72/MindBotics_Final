@@ -6,8 +6,8 @@ services:
     image: nginx:alpine
     container_name: mern_nginx
     ports:
-      - "82:80"   # HTTP Redirect on port 82
-      - "444:443" # HTTPS SSL on port 444
+      - "82:80" # HTTP Redirect on port 82
+      - "444:442" # HTTPS SSL on port 444
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/certs:/etc/nginx/certs:ro # Mount the SSL certs
