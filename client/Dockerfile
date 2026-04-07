@@ -17,7 +17,7 @@ ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 # Build the production bundle
 RUN npm run build
 
-# Stage 2: Serve with Nginx
+# Stage 2: Serve with Nginx for Production
 FROM nginx:alpine
 
 # Remove default nginx static assets

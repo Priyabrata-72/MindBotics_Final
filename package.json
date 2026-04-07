@@ -1,0 +1,11 @@
+{
+  "name": "mindbotics-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "docker:up": "sh start.sh",
+    "docker:watch": "docker compose -f docker-compose.yml -f docker-compose.dev.yml watch",
+    "docker:down": "docker compose down",
+    "docker:ps": "docker compose ps"
+  }
+}

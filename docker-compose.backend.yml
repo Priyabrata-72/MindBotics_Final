@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: mern_backend
+    env_file:
+      - ./server/.env
+    ports:
+      - "5050:5000" # Maps host 5050 to container 5000 (Backend)
+    restart: always
+    networks:
+      - mern_network
+
+networks:
+  mern_network:
+    driver: bridge
