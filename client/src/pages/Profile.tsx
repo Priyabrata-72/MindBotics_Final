@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Mail, Shield, Camera, X, Check, Loader2 } from "lucide-react";
+import { User, Mail, Shield, Camera, X, Check, Loader2, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,11 +9,14 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import api from "@/lib/api";
+import TrackProductSection from "@/components/profile/TrackProductSection";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 
 const Profile = () => {
     const [user, setUser] = useState<any>(null);
     const [isEditing, setIsEditing] = useState(false);
+    const [showTracking, setShowTracking] = useState(false);
     const [formData, setFormData] = useState({
         username: "",
         avatar: "",
@@ -216,7 +219,8 @@ const Profile = () => {
                                                     setIsEditing(false);
                                                     setFormData({
                                                         username: user.username || "",
-                                                        avatar: user.avatar || "",                                                    });
+                                                        avatar: user.avatar || "",
+                                                    });
                                                     setImageFile(null);
                                                     setPreviewUrl(null);
                                                 }}
@@ -234,14 +238,42 @@ const Profile = () => {
                                             </Button>
                                         </>
                                     ) : (
-                                        <Button type="button" onClick={() => setIsEditing(true)}>
-                                            Edit Profile
-                                        </Button>
+                                        <>
+                                            <Button type="button" onClick={() => setIsEditing(true)}>
+                                                Edit Profile
+                                            </Button>
+                                            <Button 
+                                                type="button" 
+                                                variant="secondary"
+                                                onClick={() => setShowTracking(!showTracking)}
+                                                className={showTracking ? "bg-indigo-50 text-indigo-700 hover:bg-indigo-100" : ""}
+                                            >
+                                                <Package className="h-4 w-4 mr-2" />
+                                                {showTracking ? "Hide Orders" : "Track Orders"}
+                                            </Button>
+                                        </>
                                     )}
                                 </div>
                             </form>
                         </CardContent>
                     </Card>
+
+                    {/* Track Product Section Modal */}
+                    <Dialog open={showTracking} onOpenChange={setShowTracking}>
+                        <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto bg-white p-0 sm:p-6 border-0 shadow-2xl">
+                            <DialogHeader className="px-6 pt-6 pb-2 sm:p-0 sm:pb-4 border-b border-gray-100">
+                                <DialogTitle className="text-2xl flex items-center gap-2">
+                                    <Package className="h-6 w-6 text-indigo-600" /> Track Orders
+                                </DialogTitle>
+                                <DialogDescription>
+                                    View your ordered products and track delivery status
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="px-4 pb-6 sm:p-0">
+                                <TrackProductSection />
+                            </div>
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
             <Footer />

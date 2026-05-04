@@ -11,7 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Trash } from "lucide-react";
 import api from "@/lib/api";
+import { toast } from "sonner";
 
 interface ContactUser {
   _id: string;
@@ -54,7 +56,7 @@ const ContactUserManagement = () => {
   // ✅ Update Status Function
   const updateStatus = async (
     id: string,
-    status: "pending" | "completed" | "uncompleted"
+    status: "completed" | "uncompleted"
   ) => {
     try {
       await api.put(`/admin/contacts/${id}/status`, { status });
@@ -67,6 +69,19 @@ const ContactUserManagement = () => {
       );
     } catch (error) {
       console.error("Failed to update status", error);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this contact inquiry?")) {
+      try {
+        await api.delete(`/admin/contacts/${id}`);
+        setContacts((prev) => prev.filter((contact) => contact._id !== id));
+        toast.success("Contact inquiry deleted successfully");
+      } catch (error) {
+        console.error("Failed to delete contact inquiry", error);
+        toast.error("Failed to delete contact inquiry");
+      }
     }
   };
 
@@ -110,13 +125,14 @@ const ContactUserManagement = () => {
               <TableHead>Message</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Date</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             {filteredContacts.length === 0 && !loading ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
+                <TableCell colSpan={6} className="h-24 text-center">
                   No contact inquiries found.
                 </TableCell>
               </TableRow>
@@ -177,16 +193,6 @@ const ContactUserManagement = () => {
                           size="sm"
                           variant="outline"
                           onClick={() =>
-                            updateStatus(item._id, "pending")
-                          }
-                        >
-                          Pending
-                        </Button>
-
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
                             updateStatus(item._id, "completed")
                           }
                         >
@@ -209,6 +215,18 @@ const ContactUserManagement = () => {
                   {/* Date */}
                   <TableCell className="text-right text-muted-foreground">
                     {new Date(item.createdAt).toLocaleDateString()}
+                  </TableCell>
+
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(item._id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash className="mr-2 h-4 w-4" />
+                      Delete
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))

@@ -14,6 +14,7 @@ interface Course {
   rating?: number;
   thumbnail?: string;
   image?: string;
+  price?: number;
 }
 
 const CoursesSection = () => {
@@ -115,18 +116,23 @@ const CoursesSection = () => {
                       {course.shortDescription || course.description}
                     </p>
 
-                    {/* Meta */}
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                      {course.duration && (
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {course.duration}
-                        </div>
-                      )}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        {course.duration && (
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {course.duration}
+                          </div>
+                        )}
 
-                      <div className="flex items-center gap-1 text-amber-500">
-                        <Star className="w-4 h-4 fill-current" />
-                        {course.rating || 4.5}
+                        <div className="flex items-center gap-1 text-amber-500">
+                          <Star className="w-4 h-4 fill-current" />
+                          {course.rating || 4.5}
+                        </div>
+                      </div>
+                      
+                      <div className="text-lg font-bold text-foreground">
+                        {!course.price || course.price === 0 ? "Free" : `₹${course.price.toLocaleString()}`}
                       </div>
                     </div>
 

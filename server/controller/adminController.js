@@ -3,6 +3,9 @@ import User from "../model/user.js";
 import Course from "../model/course.js";
 import Enrollment from "../model/enrollment.js";
 import Contact from "../model/Contact.js";
+import Feedback from "../model/feedback.js";
+import Project from "../model/project.js";
+import ThreeDModel from "../model/ThreeDModel.js";
 import { sendOtpEmail } from "../utils/email.js";
 
 // @desc    Get dashboard stats
@@ -13,6 +16,9 @@ const getDashboardStats = asyncHandler(async (req, res) => {
     const courseCount = await Course.countDocuments();
     const enrollmentCount = await Enrollment.countDocuments();
     const contactCount = await Contact.countDocuments();
+    const feedbackCount = await Feedback.countDocuments();
+    const projectCount = await Project.countDocuments();
+    const threeDDesignCount = await ThreeDModel.countDocuments();
 
     const recentUsers = await User.find().sort({ createdAt: -1 }).limit(5).select("username email role createdAt");
 
@@ -32,6 +38,9 @@ const getDashboardStats = asyncHandler(async (req, res) => {
             courses: courseCount,
             enrollments: enrollmentCount,
             contacts: contactCount,
+            feedback: feedbackCount,
+            projects: projectCount,
+            threeDDesigns: threeDDesignCount,
         },
         recentActivity,
     });
@@ -170,6 +179,28 @@ const getAllContacts = asyncHandler(async (req, res) => {
     });
 });
 
+// @desc    Get all feedback
+// @route   GET /api/admin/feedback
+// @access  Private/Admin
+const getAllFeedback = asyncHandler(async (req, res) => {
+    const pageSize = Math.max(Number(req.query.limit) || 10, 1);
+    const page = Math.max(Number(req.query.page) || 1, 1);
+
+    const count = await Feedback.countDocuments({});
+
+    const feedback = await Feedback.find({})
+        .limit(pageSize)
+        .skip(pageSize * (page - 1))
+        .sort({ createdAt: -1 });
+
+    res.json({
+        feedback,
+        page,
+        pages: Math.ceil(count / pageSize),
+        total: count,
+    });
+});
+
 // @desc    Update user role
 // @route   PUT /api/admin/users/:id
 // @access  Private/Admin
@@ -203,6 +234,21 @@ const deleteContact = asyncHandler(async (req, res) => {
     } else {
         res.status(404);
         throw new Error("Contact not found");
+    }
+});
+
+// @desc    Delete feedback
+// @route   DELETE /api/admin/feedback/:id
+// @access  Private/Admin
+const deleteFeedback = asyncHandler(async (req, res) => {
+    const feedback = await Feedback.findById(req.params.id);
+
+    if (feedback) {
+        await feedback.deleteOne();
+        res.json({ message: "Feedback removed" });
+    } else {
+        res.status(404);
+        throw new Error("Feedback not found");
     }
 });
 
@@ -260,6 +306,8 @@ export {
     updateUserRole,
     getAllEnrollments,
     getAllContacts,
+    getAllFeedback,
     updateContactStatus,
-    deleteContact
+    deleteContact,
+    deleteFeedback
 };

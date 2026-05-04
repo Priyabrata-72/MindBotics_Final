@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, Shield, Trash, Plus } from "lucide-react";
+import { MoreHorizontal, Shield, Trash, Plus, Pencil } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -62,6 +62,13 @@ const UserManagement = () => {
         role: "user",
         password: "",
     });
+
+    // Edit state
+    const [isEditUserOpen, setIsEditUserOpen] = useState(false);
+    const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [editUsername, setEditUsername] = useState("");
+    const [editEmail, setEditEmail] = useState("");
+    const [editRole, setEditRole] = useState("user");
 
     const fetchUsers = async () => {
         try {
@@ -119,6 +126,41 @@ const UserManagement = () => {
         } catch (error) {
             console.error("Failed to update user role", error);
             toast.error("Failed to update user role");
+        }
+    };
+
+    /* ================= OPEN EDIT ================= */
+    const openEditUser = (user: User) => {
+        setEditingUser(user);
+        setEditUsername(user.username);
+        setEditEmail(user.email);
+        setEditRole(user.role);
+        setIsEditUserOpen(true);
+    };
+
+    /* ================= UPDATE USER ================= */
+    const handleUpdateUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingUser) return;
+        try {
+            await api.put(`/admin/users/${editingUser._id}`, {
+                username: editUsername,
+                email: editEmail,
+                role: editRole,
+            });
+            setUsers(prev =>
+                prev.map(u =>
+                    u._id === editingUser._id
+                        ? { ...u, username: editUsername, email: editEmail, role: editRole }
+                        : u
+                )
+            );
+            setIsEditUserOpen(false);
+            setEditingUser(null);
+            toast.success("User updated successfully");
+        } catch (error) {
+            console.error("Failed to update user", error);
+            toast.error("Failed to update user");
         }
     };
 
@@ -324,30 +366,27 @@ const UserManagement = () => {
                                         </DropdownMenuTrigger>
 
                                         <DropdownMenuContent align="end">
-                                            <DropdownMenuLabel>
-                                                Actions
-                                            </DropdownMenuLabel>
+                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+
+                                            <DropdownMenuItem onClick={() => openEditUser(user)}>
+                                                <Pencil className="mr-2 h-4 w-4" />
+                                                Edit User
+                                            </DropdownMenuItem>
 
                                             <DropdownMenuItem
                                                 onClick={() =>
                                                     handleRoleChange(
                                                         user._id,
-                                                        user.role === "user"
-                                                            ? "admin"
-                                                            : "user"
+                                                        user.role === "user" ? "admin" : "user"
                                                     )
                                                 }
                                             >
                                                 <Shield className="mr-2 h-4 w-4" />
-                                                {user.role === "user"
-                                                    ? "Make Admin"
-                                                    : "Make User"}
+                                                {user.role === "user" ? "Make Admin" : "Make User"}
                                             </DropdownMenuItem>
 
                                             <DropdownMenuItem
-                                                onClick={() =>
-                                                    handleDelete(user._id)
-                                                }
+                                                onClick={() => handleDelete(user._id)}
                                                 className="text-red-600"
                                             >
                                                 <Trash className="mr-2 h-4 w-4" />
@@ -387,6 +426,50 @@ const UserManagement = () => {
                     Next
                 </Button>
             </div>
+
+            {/* ---- EDIT USER DIALOG ---- */}
+            <Dialog open={isEditUserOpen} onOpenChange={(open) => { setIsEditUserOpen(open); if (!open) setEditingUser(null); }}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit User</DialogTitle>
+                        <DialogDescription>Update user details and role.</DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleUpdateUser} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label>Username</Label>
+                            <Input
+                                value={editUsername}
+                                onChange={(e) => setEditUsername(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Email</Label>
+                            <Input
+                                type="email"
+                                value={editEmail}
+                                onChange={(e) => setEditEmail(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Role</Label>
+                            <Select value={editRole} onValueChange={setEditRole}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="user">User</SelectItem>
+                                    <SelectItem value="admin">Admin</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <DialogFooter>
+                            <Button type="submit">Save Changes</Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

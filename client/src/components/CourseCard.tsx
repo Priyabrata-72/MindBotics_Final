@@ -12,6 +12,7 @@ interface CourseCardProps {
   rating: number;
   instructor?: string;
   instructorId?: string;
+  price?: number;
 }
 
 const CourseCard = ({
@@ -23,6 +24,7 @@ const CourseCard = ({
   duration,
   rating,
   instructor,
+  price = 0,
 }: CourseCardProps) => {
 
   const courseSlug =
@@ -60,27 +62,28 @@ const CourseCard = ({
           {shortDescription}
         </p>
 
-        {/* Stats */}
-        <div className="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
-            <span>{duration} weeks</span>
+        {/* Stats & Price */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <Star className="w-4 h-4 fill-primary text-primary" />
+              <span>{rating}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Star className="w-4 h-4 fill-primary text-primary" />
-            <span>{rating}</span>
+          <div className="text-lg font-bold text-foreground">
+            {price === 0 ? "Free" : `₹${price.toLocaleString()}`}
           </div>
         </div>
 
         {/* Instructor */}
-        {instructor && (
+        {/* {instructor && (
           <p className="text-sm text-muted-foreground mb-4">
             <span className="text-foreground font-medium">
               Instructor:
             </span>{" "}
             {instructor}
           </p>
-        )}
+        )} */}
 
         {/* CTA */}
         <Link to={`/course/${courseSlug}`}>

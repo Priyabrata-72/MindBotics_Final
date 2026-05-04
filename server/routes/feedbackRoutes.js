@@ -1,11 +1,12 @@
 // routes/feedbackRoutes.js
 import express from "express";
 import Feedback from "../model/feedback.js"; // ← default import + correct filename
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // POST /api/feedback — Submit new feedback
-router.post('/', async (req, res) => {
+router.post('/', protect, async (req, res) => {
   try {
     const { name, email, rating, feedback } = req.body;
 

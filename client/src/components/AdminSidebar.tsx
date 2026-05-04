@@ -14,13 +14,17 @@ import {
 import {
     LayoutDashboard,
     Users,
+
     BookOpen,
     Briefcase,
     MessageSquare,
+    Star,
     Settings,
     LogOut,
     Home,
-    Package
+    Package,
+    ShoppingCart,
+    RotateCcw
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -65,9 +69,24 @@ const AdminSidebar = () => {
             icon: Package,
         },
         {
+            title: "Orders",
+            url: "/admin/orders",
+            icon: ShoppingCart,
+        },
+        {
+            title: "Refunds",
+            url: "/admin/refunds",
+            icon: RotateCcw,
+        },
+        {
             title: "Contacts",
             url: "/admin/contacts",
             icon: MessageSquare,
+        },
+        {
+            title: "Feedback",
+            url: "/admin/feedback",
+            icon: Star,
         },
     ];
     

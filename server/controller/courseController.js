@@ -59,11 +59,13 @@ const createCourse = asyncHandler(async (req, res) => {
     try {
         const { title, shortDescription, description, category, price, level, duration, rating, instructorName } = req.body;
 
-        let { syllabus, requirements, learningOutcomes } = req.body;
+        let { syllabus, syllabus90, syllabus180, requirements, learningOutcomes } = req.body;
 
         // Handle JSON strings from FormData
         try {
             if (typeof syllabus === 'string') syllabus = JSON.parse(syllabus);
+            if (typeof syllabus90 === 'string') syllabus90 = JSON.parse(syllabus90);
+            if (typeof syllabus180 === 'string') syllabus180 = JSON.parse(syllabus180);
             if (typeof requirements === 'string') requirements = JSON.parse(requirements);
             if (typeof learningOutcomes === 'string') learningOutcomes = JSON.parse(learningOutcomes);
         } catch (e) {
@@ -101,6 +103,8 @@ const createCourse = asyncHandler(async (req, res) => {
             instructorName: instructorName || "",
             averageRating: Number(rating) || 0,
             syllabus: Array.isArray(syllabus) ? syllabus : [],
+            syllabus90: Array.isArray(syllabus90) ? syllabus90 : [],
+            syllabus180: Array.isArray(syllabus180) ? syllabus180 : [],
             requirements: Array.isArray(requirements) ? requirements : [],
             learningOutcomes: Array.isArray(learningOutcomes)
                 ? learningOutcomes
@@ -129,7 +133,7 @@ const updateCourse = asyncHandler(async (req, res) => {
     try {
         const { title, shortDescription, description, category, price, level, status, duration, rating, instructorName } = req.body;
 
-        let { syllabus, requirements, learningOutcomes } = req.body;
+        let { syllabus, syllabus90, syllabus180, requirements, learningOutcomes } = req.body;
 
         const course = await Course.findById(req.params.id);
 
@@ -137,6 +141,8 @@ const updateCourse = asyncHandler(async (req, res) => {
             // Handle JSON strings
             try {
                 if (typeof syllabus === 'string') syllabus = JSON.parse(syllabus);
+                if (typeof syllabus90 === 'string') syllabus90 = JSON.parse(syllabus90);
+                if (typeof syllabus180 === 'string') syllabus180 = JSON.parse(syllabus180);
                 if (typeof requirements === 'string') requirements = JSON.parse(requirements);
                 if (typeof learningOutcomes === 'string') learningOutcomes = JSON.parse(learningOutcomes);
             } catch (e) {
@@ -155,6 +161,8 @@ const updateCourse = asyncHandler(async (req, res) => {
             course.averageRating = rating !== undefined ? Number(rating) : course.averageRating;
 
             if (syllabus) course.syllabus = syllabus;
+            if (syllabus90) course.syllabus90 = syllabus90;
+            if (syllabus180) course.syllabus180 = syllabus180;
             if (requirements) course.requirements = requirements;
             if (learningOutcomes) course.learningOutcomes = learningOutcomes;
 

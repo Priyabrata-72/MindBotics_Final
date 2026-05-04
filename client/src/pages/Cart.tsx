@@ -2,66 +2,183 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Trash2, Plus, Minus, ShoppingBag } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PageBanner from "@/components/PageBanner";
+import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import api from "@/lib/api";
 
-interface CartItem {
-  id: number;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
+declare global {
+  interface Window {
+    Razorpay?: new (options: RazorpayOptions) => {
+      open: () => void;
+      on: (event: "payment.failed", handler: (response: RazorpayFailureResponse) => void) => void;
+    };
+  }
 }
 
+interface RazorpaySuccessResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}
+
+interface RazorpayFailureResponse {
+  error?: {
+    description?: string;
+  };
+}
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  prefill: {
+    name: string;
+    email: string;
+  };
+  theme: {
+    color: string;
+  };
+  handler: (response: RazorpaySuccessResponse) => void | Promise<void>;
+}
+
+const loadRazorpayScript = () => {
+  return new Promise<boolean>((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 const Cart = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: 1,
-      name: "Arduino Starter Kit",
-      price: 49.99,
-      quantity: 2,
-      image: "https://images.unsplash.com/photo-1553406830-ef2513450d76?w=100&h=100&fit=crop",
-    },
-    {
-      id: 2,
-      name: "Raspberry Pi 4 Model B",
-      price: 75.00,
-      quantity: 1,
-      image: "https://images.unsplash.com/photo-1629654297299-c8506221ca97?w=100&h=100&fit=crop",
-    },
-    {
-      id: 3,
-      name: "IoT Sensor Kit",
-      price: 35.50,
-      quantity: 3,
-      image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=100&h=100&fit=crop",
-    },
-  ]);
+  const { cartItems, removeFromCart, updateQuantity, clearCart, subtotal } = useCart();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [shippingAddress, setShippingAddress] = useState({
+    street: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    country: "",
+  });
 
-  const updateQuantity = (id: number, change: number) => {
-    setCartItems((items) =>
-      items.map((item) =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + change) }
-          : item
-      )
-    );
-  };
-
-  const removeItem = (id: number) => {
-    setCartItems((items) => items.filter((item) => item.id !== id));
-  };
-
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = subtotal > 100 ? 0 : 10;
+  const shipping = subtotal > 100 || cartItems.length === 0 ? 0 : 10;
   const total = subtotal + shipping;
 
+  const handleCheckout = async () => {
+    if (cartItems.length === 0) {
+      return;
+    }
+
+    if (!phone || !shippingAddress.street || !shippingAddress.city || !shippingAddress.state || !shippingAddress.zipCode || !shippingAddress.country) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all shipping details and your phone number.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsCheckingOut(true);
+
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded || !window.Razorpay) {
+        toast({
+          title: "Payment unavailable",
+          description: "Unable to load Razorpay checkout. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data } = await api.post("/payments/create-order", {
+        items: cartItems.map((item) => ({
+          id: item.id,
+          quantity: item.quantity,
+        })),
+        shippingAddress,
+        phone,
+      });
+
+      const options: RazorpayOptions = {
+        key: data.keyId,
+        amount: data.order.amount,
+        currency: data.order.currency,
+        name: "MindBotics",
+        description: "Cart Checkout",
+        order_id: data.order.id,
+        prefill: {
+          name: user?.username || "",
+          email: user?.email || "",
+        },
+        theme: {
+          color: "#2563eb",
+        },
+        handler: async (response) => {
+          try {
+            await api.post("/payments/verify", response);
+            clearCart();
+            toast({
+              title: "Payment successful",
+              description: "Your payment has been verified successfully.",
+            });
+          } catch (error) {
+            console.error("Payment verification failed", error);
+            toast({
+              title: "Payment verification failed",
+              description: "Please contact support if money was deducted.",
+              variant: "destructive",
+            });
+          }
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.on("payment.failed", (response) => {
+        toast({
+          title: "Payment failed",
+          description: response.error?.description || "Please try again.",
+          variant: "destructive",
+        });
+      });
+      razorpay.open();
+    } catch (error: any) {
+      console.error("Failed to start checkout", error);
+      toast({
+        title: "Checkout failed",
+        description: error.response?.data?.message || "Unable to start payment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background font-sans">
       <Navbar />
-      <PageBanner title="Shopping Cart" breadcrumbs={[{ label: "Home", href: "/" }, { label: "Cart" }]} />
+      <PageBanner 
+        title="Shopping Cart" 
+        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Cart" }]} 
+      />
 
        <section className="py-16">
         <div className="container mx-auto px-4">
@@ -73,94 +190,163 @@ const Cart = () => {
                 Looks like you haven't added anything to your cart yet.
               </p>
               <Button asChild>
-                <Link to="/shop">Continue Shopping</Link>
+                <Link to="/projects">Continue Shopping</Link>
               </Button>
             </div>
           ) : (
             <div className="grid lg:grid-cols-3 gap-8">
-              {/* Cart Items */}
-              <div className="lg:col-span-2 space-y-4">
-                <h2 className="text-2xl font-bold mb-6">Cart Items ({cartItems.length})</h2>
-                {cartItems.map((item) => (
-                  <Card key={item.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-20 h-20 object-cover rounded-lg"
+              {/* Cart Items and Shipping */}
+              <div className="lg:col-span-2 space-y-8">
+                {/* Cart Items */}
+                <div className="space-y-4">
+                  <h2 className="text-2xl font-bold mb-6">Cart Items ({cartItems.length})</h2>
+                  {cartItems.map((item) => (
+                    <Card key={item.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-4">
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-20 h-20 object-cover rounded-lg bg-gray-100"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold truncate">{item.name}</h3>
+                            <p className="text-primary font-bold">₹{item.price.toLocaleString()}/-</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => updateQuantity(item.id, -1)}
+                            >
+                              <Minus className="w-4 h-4" />
+                            </Button>
+                            <span className="w-8 text-center font-medium">{item.quantity}</span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => updateQuantity(item.id, 1)}
+                            >
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold">₹{(item.price * item.quantity).toLocaleString()}/-</p>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => removeFromCart(item.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Shipping Details */}
+                <div className="space-y-4">
+                  <h2 className="text-2xl font-bold mb-6">Shipping Details</h2>
+                  <Card>
+                    <CardContent className="p-6 space-y-4">
+                      <div className="space-y-2 mt-2">
+                        <label className="text-sm font-medium">Phone Number</label>
+                        <Input 
+                          value={phone} 
+                          onChange={(e) => setPhone(e.target.value)} 
+                          placeholder="Enter your phone number" 
                         />
-                        <div className="flex-1">
-                          <h3 className="font-semibold">{item.name}</h3>
-                          <p className="text-primary font-bold">${item.price.toFixed(2)}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Street Address</label>
+                        <Input 
+                          value={shippingAddress.street} 
+                          onChange={(e) => setShippingAddress({...shippingAddress, street: e.target.value})} 
+                          placeholder="Enter street address" 
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">City</label>
+                          <Input 
+                            value={shippingAddress.city} 
+                            onChange={(e) => setShippingAddress({...shippingAddress, city: e.target.value})} 
+                            placeholder="City" 
+                          />
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => updateQuantity(item.id, -1)}
-                          >
-                            <Minus className="w-4 h-4" />
-                          </Button>
-                          <span className="w-8 text-center font-medium">{item.quantity}</span>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => updateQuantity(item.id, 1)}
-                          >
-                            <Plus className="w-4 h-4" />
-                          </Button>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">State</label>
+                          <Input 
+                            value={shippingAddress.state} 
+                            onChange={(e) => setShippingAddress({...shippingAddress, state: e.target.value})} 
+                            placeholder="State" 
+                          />
                         </div>
-                        <div className="text-right">
-                          <p className="font-bold">${(item.price * item.quantity).toFixed(2)}</p>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => removeItem(item.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">ZIP Code</label>
+                          <Input 
+                            value={shippingAddress.zipCode} 
+                            onChange={(e) => setShippingAddress({...shippingAddress, zipCode: e.target.value})} 
+                            placeholder="ZIP Code" 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Country</label>
+                          <Input 
+                            value={shippingAddress.country} 
+                            onChange={(e) => setShippingAddress({...shippingAddress, country: e.target.value})} 
+                            placeholder="Country" 
+                          />
                         </div>
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                </div>
               </div>
 
               {/* Order Summary */}
               <div>
-                <Card>
+                <Card className="sticky top-24">
                   <CardHeader>
                     <CardTitle>Order Summary</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Subtotal</span>
-                      <span>${subtotal.toFixed(2)}</span>
+                      <span>₹{subtotal.toLocaleString()}/-</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Shipping</span>
-                      <span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span>
+                      <span>{shipping === 0 ? "Free" : `₹${shipping.toLocaleString()}/-`}</span>
                     </div>
-                    {shipping > 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        Free shipping on orders over $100
+                    {shipping > 0 && subtotal > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Free shipping on orders over ₹10,000/-
                       </p>
                     )}
                     <div className="border-t pt-4">
                       <div className="flex justify-between font-bold text-lg">
                         <span>Total</span>
-                        <span>${total.toFixed(2)}</span>
+                        <span>₹{total.toLocaleString()}/-</span>
                       </div>
                     </div>
-                    <Button className="w-full" size="lg">
-                      Proceed to Checkout
+                    <Button
+                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20"
+                      size="lg"
+                      onClick={handleCheckout}
+                      disabled={isCheckingOut}
+                    >
+                      {isCheckingOut ? "Starting Payment..." : "Proceed to Checkout"}
                     </Button>
                     <Button variant="outline" className="w-full" asChild>
-                      <Link to="/shop">Continue Shopping</Link>
+                      <Link to="/projects">Continue Shopping</Link>
                     </Button>
                   </CardContent>
                 </Card>

@@ -1,5 +1,28 @@
 import mongoose from "mongoose";
 
+// 🔹 Review Schema
+const reviewSchema = new mongoose.Schema(
+  {
+    user: {
+      type: String, // or ObjectId if you have User model
+    },
+    rating: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5,
+    },
+    comment: String,
+  },
+  { timestamps: true }
+);
+
+// 🔹 Specification Schema
+const specificationSchema = new mongoose.Schema({
+  key: String,
+  value: String,
+});
+
 const projectSchema = new mongoose.Schema(
   {
     name: {
@@ -7,16 +30,30 @@ const projectSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+
     description: {
       type: String,
       required: true,
     },
+
+    price: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+
     category: {
       type: String,
       default: "General",
     },
 
-    // ✅ FIXED IMAGES STRUCTURE
+    keyFeature: [
+      {
+        type: String,
+      },
+    ],
+
+    // ✅ Main Images (Cloudinary structure)
     images: [
       {
         url: {
@@ -30,12 +67,15 @@ const projectSchema = new mongoose.Schema(
       },
     ],
 
-    specifications: [
+    // 🔹 Extra Gallery (optional separation)
+    projectGallery: [
       {
-        key: String,
-        value: String,
+        url: String,
+        public_id: String,
       },
     ],
+
+    specifications: [specificationSchema],
 
     uses: {
       type: [String],
@@ -59,6 +99,20 @@ const projectSchema = new mongoose.Schema(
         ref: "Course",
       },
     ],
+
+    // 🔹 Reviews
+    reviews: [reviewSchema],
+
+    // 🔹 Optional Aggregates
+    averageRating: {
+      type: Number,
+      default: 0,
+    },
+
+    numReviews: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

@@ -212,7 +212,7 @@ const ThreeDPrintingSection = () => {
                             >
                                 <Button
                                     variant="outline"
-                                    onClick={() => navigate("/shop")}
+                                    onClick={() => navigate("/3d")}
                                     className="px-10 py-7 rounded-lg border-2 border-blue-600 text-blue-600 dark:text-blue-400 font-black text-lg tracking-wide uppercase transition-all duration-300 hover:bg-blue-50 dark:hover:bg-blue-950/30"
                                 >
                                     Explore Products

@@ -62,10 +62,16 @@ const getProductById = asyncHandler(async (req, res) => {
 ========================================================= */
 const createProduct = asyncHandler(async (req, res) => {
   try {
-    const { name, description, category } = req.body || {};
+    const { name, description, category, price } = req.body || {};
 
     if (!name) {
       return res.status(400).json({ message: "Product name is required" });
+    }
+
+    const parsedPrice = Number(price);
+
+    if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
+      return res.status(400).json({ message: "Valid product price is required" });
     }
 
     // ---------- Cloudinary Upload ----------
@@ -86,6 +92,7 @@ const createProduct = asyncHandler(async (req, res) => {
       name,
       description: description || "",
       category: category || "General",
+      price: parsedPrice,
       images: imageData, // ✅ SAME STRUCTURE
       status: "active",
     });
@@ -110,15 +117,25 @@ const createProduct = asyncHandler(async (req, res) => {
 ========================================================= */
 const updateProduct = asyncHandler(async (req, res) => {
   try {
-    const { name, description, category, status } = req.body;
+    const { name, description, category, status, price } = req.body;
 
     const product = await Product.findById(req.params.id);
 
     if (product) {
+      const parsedPrice =
+        price === undefined || price === null || price === ""
+          ? product.price
+          : Number(price);
+
+      if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
+        return res.status(400).json({ message: "Valid product price is required" });
+      }
+
       product.name = name || product.name;
       product.description = description || product.description;
       product.category = category || product.category;
       product.status = status || product.status;
+      product.price = parsedPrice;
 
       const file =
         req.file ||

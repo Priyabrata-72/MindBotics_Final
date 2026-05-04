@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, Plus, Trash, ExternalLink, X, Upload } from "lucide-react";
+import { MoreHorizontal, Plus, Trash, ExternalLink, X, Upload, Pencil } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -41,7 +41,10 @@ interface Project {
     name: string;
     description: string;
     category?: string;
-    images?: string[];
+    price: number;
+    keyFeature?: string[];
+    images?: { url: string; public_id: string }[];
+    projectGallery?: { url: string; public_id: string }[];
     specifications?: { key: string; value: string }[];
     uses?: string[];
     includes?: string[];
@@ -61,18 +64,24 @@ const ProjectManagement = () => {
     const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(true);
     const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
+    const [isEditProjectOpen, setIsEditProjectOpen] = useState(false);
+    const [editingProject, setEditingProject] = useState<Project | null>(null);
 
     // New Project State
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [category, setCategory] = useState("General");
+    const [price, setPrice] = useState<string>("0");
     const [status, setStatus] = useState<"Draft" | "Published">("Draft");
     const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
 
     // Complex fields
     const [images, setImages] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    const [galleryImages, setGalleryImages] = useState<File[]>([]);
+    const [galleryImagePreviews, setGalleryImagePreviews] = useState<string[]>([]);
     const [specifications, setSpecifications] = useState<{ key: string; value: string }[]>([{ key: "", value: "" }]);
+    const [keyFeature, setKeyFeature] = useState<string[]>([""]);
     const [uses, setUses] = useState<string[]>([""]);
     const [includes, setIncludes] = useState<string[]>([""]);
 
@@ -110,28 +119,43 @@ const ProjectManagement = () => {
         setName("");
         setDescription("");
         setCategory("General");
+        setPrice("0");
         setStatus("Draft");
         setSelectedCourses([]);
         setImages([]);
         setImagePreviews([]);
+        setGalleryImages([]);
+        setGalleryImagePreviews([]);
         setSpecifications([{ key: "", value: "" }]);
+        setKeyFeature([""]);
         setUses([""]);
         setIncludes([""]);
+        setEditingProject(null);
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, isGallery = false) => {
         if (e.target.files) {
             const files = Array.from(e.target.files);
-            setImages(prev => [...prev, ...files]);
-
-            const newPreviews = files.map(file => URL.createObjectURL(file));
-            setImagePreviews(prev => [...prev, ...newPreviews]);
+            if (isGallery) {
+                setGalleryImages(prev => [...prev, ...files]);
+                const newPreviews = files.map(file => URL.createObjectURL(file));
+                setGalleryImagePreviews(prev => [...prev, ...newPreviews]);
+            } else {
+                setImages(prev => [...prev, ...files]);
+                const newPreviews = files.map(file => URL.createObjectURL(file));
+                setImagePreviews(prev => [...prev, ...newPreviews]);
+            }
         }
     };
 
-    const removeImage = (index: number) => {
-        setImages(prev => prev.filter((_, i) => i !== index));
-        setImagePreviews(prev => prev.filter((_, i) => i !== index));
+    const removeImage = (index: number, isGallery = false) => {
+        if (isGallery) {
+            setGalleryImages(prev => prev.filter((_, i) => i !== index));
+            setGalleryImagePreviews(prev => prev.filter((_, i) => i !== index));
+        } else {
+            setImages(prev => prev.filter((_, i) => i !== index));
+            setImagePreviews(prev => prev.filter((_, i) => i !== index));
+        }
     };
 
     // Dynamic Specifications Handlers
@@ -177,20 +201,27 @@ const ProjectManagement = () => {
             formData.append("name", name);
             formData.append("description", description);
             formData.append("category", category);
+            formData.append("price", price);
             formData.append("status", status);
 
             // Clean up empty fields
             const cleanSpecs = specifications.filter(s => s.key && s.value);
             const cleanUses = uses.filter(u => u);
             const cleanIncludes = includes.filter(i => i);
+            const cleanFeatures = keyFeature.filter(f => f);
 
             formData.append("specifications", JSON.stringify(cleanSpecs));
             formData.append("uses", JSON.stringify(cleanUses));
             formData.append("includes", JSON.stringify(cleanIncludes));
+            formData.append("keyFeature", JSON.stringify(cleanFeatures));
             formData.append("selectedCourses", JSON.stringify(selectedCourses));
 
             images.forEach(image => {
                 formData.append("images", image);
+            });
+
+            galleryImages.forEach(image => {
+                formData.append("projectGallery", image);
             });
 
             const res = await api.post("/admin/projects", formData, {
@@ -215,6 +246,68 @@ const ProjectManagement = () => {
                 return [...prev, courseId];
             }
         });
+    };
+
+    /* ================= OPEN EDIT ================= */
+    const openEditProject = (project: Project) => {
+        setEditingProject(project);
+        setName(project.name);
+        setDescription(project.description);
+        setCategory(project.category || "General");
+        setPrice(String(project.price ?? 0));
+        setStatus(project.status || "Draft");
+        setSelectedCourses(project.courses?.map(c => c._id) || []);
+        setSpecifications(project.specifications?.length ? project.specifications : [{ key: "", value: "" }]);
+        setKeyFeature(project.keyFeature?.length ? project.keyFeature : [""]);
+        setUses(project.uses?.length ? project.uses : [""]);
+        setIncludes(project.includes?.length ? project.includes : [""]);
+        // Show existing images as previews (URLs from DB)
+        setImages([]);
+        setImagePreviews(project.images?.map(img => img.url) || []);
+        setGalleryImages([]);
+        setGalleryImagePreviews(project.projectGallery?.map(img => img.url) || []);
+        setIsEditProjectOpen(true);
+    };
+
+    /* ================= UPDATE PROJECT ================= */
+    const handleUpdateProject = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingProject) return;
+        try {
+            const formData = new FormData();
+            formData.append("name", name);
+            formData.append("description", description);
+            formData.append("category", category);
+            formData.append("price", price);
+            formData.append("status", status);
+
+            const cleanSpecs = specifications.filter(s => s.key && s.value);
+            const cleanUses = uses.filter(u => u);
+            const cleanIncludes = includes.filter(i => i);
+            const cleanFeatures = keyFeature.filter(f => f);
+
+            formData.append("specifications", JSON.stringify(cleanSpecs));
+            formData.append("uses", JSON.stringify(cleanUses));
+            formData.append("includes", JSON.stringify(cleanIncludes));
+            formData.append("keyFeature", JSON.stringify(cleanFeatures));
+            formData.append("selectedCourses", JSON.stringify(selectedCourses));
+
+            images.forEach(image => formData.append("images", image));
+            galleryImages.forEach(image => formData.append("projectGallery", image));
+
+            const res = await api.put(`/admin/projects/${editingProject._id}`, formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+
+            const updated = res.data?.project || res.data;
+            setProjects(prev => prev.map(p => p._id === editingProject._id ? { ...p, ...updated } : p));
+            setIsEditProjectOpen(false);
+            resetForm();
+            toast.success("Project updated successfully");
+        } catch (error) {
+            console.error("Failed to update project", error);
+            toast.error("Failed to update project");
+        }
     };
 
     return (
@@ -244,10 +337,14 @@ const ProjectManagement = () => {
                         <form onSubmit={handleAddProject} className="space-y-6">
 
                             {/* Basic Info */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="name">Project Name</Label>
                                     <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="price">Price</Label>
+                                    <Input id="price" type="number" min="0" value={price} onChange={(e) => setPrice(e.target.value)} required />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="category">Category</Label>
@@ -291,6 +388,26 @@ const ProjectManagement = () => {
                                 </div>
                             </div>
 
+                            {/* Project Gallery Images */}
+                            <div className="space-y-2">
+                                <Label>Project Gallery</Label>
+                                <div className="flex flex-wrap gap-4 items-center">
+                                    <label className="border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:bg-gray-50 flex flex-col items-center justify-center w-32 h-32 transition-colors">
+                                        <Upload className="h-6 w-6 text-gray-500 mb-2" />
+                                        <span className="text-xs text-gray-500 text-center">Upload Gallery</span>
+                                        <input type="file" multiple accept="image/*" onChange={(e) => handleImageChange(e, true)} className="hidden" />
+                                    </label>
+                                    {galleryImagePreviews.map((src, index) => (
+                                        <div key={index} className="relative w-32 h-32 border rounded-lg overflow-hidden group">
+                                            <img src={src} alt="Gallery Preview" className="w-full h-full object-cover" />
+                                            <button type="button" onClick={() => removeImage(index, true)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
                             {/* Specifications */}
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center">
@@ -310,8 +427,22 @@ const ProjectManagement = () => {
                                 </div>
                             </div>
 
-                            {/* Common Uses & What's Included */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Features, Uses & What's Included */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <Label>Key Features</Label>
+                                        <Button type="button" variant="outline" size="sm" onClick={() => addListItem(setKeyFeature, keyFeature)}>Add Feature</Button>
+                                    </div>
+                                    {keyFeature.map((feature, index) => (
+                                        <div key={index} className="flex gap-2">
+                                            <Input value={feature} onChange={(e) => handleListChange(setKeyFeature, keyFeature, index, e.target.value)} />
+                                            <Button type="button" variant="ghost" size="icon" onClick={() => removeListItem(setKeyFeature, keyFeature, index)} disabled={keyFeature.length === 1}>
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center">
                                         <Label>Common Uses</Label>
@@ -388,6 +519,174 @@ const ProjectManagement = () => {
                         </form>
                     </DialogContent>
                 </Dialog>
+
+                {/* ---- EDIT PROJECT DIALOG ---- */}
+                <Dialog open={isEditProjectOpen} onOpenChange={(open) => {
+                    setIsEditProjectOpen(open);
+                    if (!open) resetForm();
+                }}>
+                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                            <DialogTitle>Edit Project</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleUpdateProject} className="space-y-6">
+                            {/* Basic Info */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="edit-name">Project Name</Label>
+                                    <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="edit-price">Price</Label>
+                                    <Input id="edit-price" type="number" min="0" value={price} onChange={(e) => setPrice(e.target.value)} required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="edit-category">Category</Label>
+                                    <Select value={category} onValueChange={setCategory}>
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="General">General</SelectItem>
+                                            <SelectItem value="Robotics">Robotics</SelectItem>
+                                            <SelectItem value="IoT">IoT</SelectItem>
+                                            <SelectItem value="AI">AI</SelectItem>
+                                            <SelectItem value="Programming">Programming</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Description</Label>
+                                <Textarea value={description} onChange={(e) => setDescription(e.target.value)} required className="min-h-[100px]" />
+                            </div>
+                            {/* Images */}
+                            <div className="space-y-2">
+                                <Label>Project Images (upload new to replace)</Label>
+                                <div className="flex flex-wrap gap-4 items-center">
+                                    <label className="border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:bg-gray-50 flex flex-col items-center justify-center w-32 h-32 transition-colors">
+                                        <Upload className="h-6 w-6 text-gray-500 mb-2" />
+                                        <span className="text-xs text-gray-500 text-center">Upload Images</span>
+                                        <input type="file" multiple accept="image/*" onChange={handleImageChange} className="hidden" />
+                                    </label>
+                                    {imagePreviews.map((src, index) => (
+                                        <div key={index} className="relative w-32 h-32 border rounded-lg overflow-hidden group">
+                                            <img src={src} alt="Preview" className="w-full h-full object-cover" />
+                                            <button type="button" onClick={() => removeImage(index)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            {/* Gallery */}
+                            <div className="space-y-2">
+                                <Label>Gallery (upload new to replace)</Label>
+                                <div className="flex flex-wrap gap-4 items-center">
+                                    <label className="border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:bg-gray-50 flex flex-col items-center justify-center w-32 h-32 transition-colors">
+                                        <Upload className="h-6 w-6 text-gray-500 mb-2" />
+                                        <span className="text-xs text-gray-500 text-center">Upload Gallery</span>
+                                        <input type="file" multiple accept="image/*" onChange={(e) => handleImageChange(e, true)} className="hidden" />
+                                    </label>
+                                    {galleryImagePreviews.map((src, index) => (
+                                        <div key={index} className="relative w-32 h-32 border rounded-lg overflow-hidden group">
+                                            <img src={src} alt="Gallery Preview" className="w-full h-full object-cover" />
+                                            <button type="button" onClick={() => removeImage(index, true)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            {/* Specs */}
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <Label>Specifications</Label>
+                                    <Button type="button" variant="outline" size="sm" onClick={addSpec}>Add Spec</Button>
+                                </div>
+                                {specifications.map((spec, index) => (
+                                    <div key={index} className="flex gap-2">
+                                        <Input placeholder="Key" value={spec.key} onChange={(e) => handleSpecChange(index, "key", e.target.value)} />
+                                        <Input placeholder="Value" value={spec.value} onChange={(e) => handleSpecChange(index, "value", e.target.value)} />
+                                        <Button type="button" variant="ghost" size="icon" onClick={() => removeSpec(index)} disabled={specifications.length === 1}><X className="h-4 w-4" /></Button>
+                                    </div>
+                                ))}
+                            </div>
+                            {/* Features / Uses / Includes */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <Label>Key Features</Label>
+                                        <Button type="button" variant="outline" size="sm" onClick={() => addListItem(setKeyFeature, keyFeature)}>Add</Button>
+                                    </div>
+                                    {keyFeature.map((f, i) => (
+                                        <div key={i} className="flex gap-2">
+                                            <Input value={f} onChange={(e) => handleListChange(setKeyFeature, keyFeature, i, e.target.value)} />
+                                            <Button type="button" variant="ghost" size="icon" onClick={() => removeListItem(setKeyFeature, keyFeature, i)} disabled={keyFeature.length === 1}><X className="h-4 w-4" /></Button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <Label>Common Uses</Label>
+                                        <Button type="button" variant="outline" size="sm" onClick={() => addListItem(setUses, uses)}>Add</Button>
+                                    </div>
+                                    {uses.map((u, i) => (
+                                        <div key={i} className="flex gap-2">
+                                            <Input value={u} onChange={(e) => handleListChange(setUses, uses, i, e.target.value)} />
+                                            <Button type="button" variant="ghost" size="icon" onClick={() => removeListItem(setUses, uses, i)} disabled={uses.length === 1}><X className="h-4 w-4" /></Button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <Label>What's Included</Label>
+                                        <Button type="button" variant="outline" size="sm" onClick={() => addListItem(setIncludes, includes)}>Add</Button>
+                                    </div>
+                                    {includes.map((item, i) => (
+                                        <div key={i} className="flex gap-2">
+                                            <Input value={item} onChange={(e) => handleListChange(setIncludes, includes, i, e.target.value)} />
+                                            <Button type="button" variant="ghost" size="icon" onClick={() => removeListItem(setIncludes, includes, i)} disabled={includes.length === 1}><X className="h-4 w-4" /></Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            {/* Status */}
+                            <div className="space-y-2">
+                                <Label>Status</Label>
+                                <Select value={status} onValueChange={(val: "Draft" | "Published") => setStatus(val)}>
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Draft">Draft</SelectItem>
+                                        <SelectItem value="Published">Published</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            {/* Assigned Courses */}
+                            <div className="space-y-2">
+                                <Label>Assign Courses</Label>
+                                <div className="border rounded-md p-4 h-48 overflow-y-auto">
+                                    <div className="space-y-2">
+                                        {allCourses.map(course => (
+                                            <div key={course._id} className="flex items-center space-x-2">
+                                                <input
+                                                    type="checkbox"
+                                                    id={`edit-course-${course._id}`}
+                                                    checked={selectedCourses.includes(course._id)}
+                                                    onChange={() => toggleCourseSelection(course._id)}
+                                                    className="cursor-pointer"
+                                                />
+                                                <label htmlFor={`edit-course-${course._id}`} className="text-sm font-medium cursor-pointer">{course.title}</label>
+                                            </div>
+                                        ))}
+                                        {allCourses.length === 0 && <p className="text-sm text-gray-500">No courses available.</p>}
+                                    </div>
+                                </div>
+                            </div>
+                            <DialogFooter>
+                                <Button type="submit">Save Changes</Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
             </div>
 
             <div className="flex items-center py-4">
@@ -405,6 +704,7 @@ const ProjectManagement = () => {
                         <TableRow>
                             <TableHead className="w-[200px]">Project Name</TableHead>
                             <TableHead>Category</TableHead>
+                            <TableHead>Price</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>Assigned Courses</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
@@ -424,6 +724,7 @@ const ProjectManagement = () => {
                                         {project.name}
                                     </TableCell>
                                     <TableCell>{project.category || "General"}</TableCell>
+                                    <TableCell>₹{project.price || 0}</TableCell>
                                     <TableCell>
                                         <Badge variant={project.status === "Published" ? "default" : "secondary"}>
                                             {project.status || "Draft"}
@@ -449,6 +750,10 @@ const ProjectManagement = () => {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                <DropdownMenuItem onClick={() => openEditProject(project)}>
+                                                    <Pencil className="mr-2 h-4 w-4" />
+                                                    Edit Project
+                                                </DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => handleDelete(project._id)} className="text-red-600">
                                                     <Trash className="mr-2 h-4 w-4" />
                                                     Remove Project
