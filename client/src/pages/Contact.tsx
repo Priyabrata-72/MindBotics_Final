@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
 import api from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
 const contactInfo = [
   {
@@ -36,6 +37,7 @@ const contactInfo = [
 
 const Contact = () => {
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -46,6 +48,15 @@ const Contact = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please login first to submit a contact inquiry.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     // ✅ Name should not be numeric
     if (!/^[A-Za-z\s]+$/.test(formData.name.trim())) {

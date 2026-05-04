@@ -21,6 +21,7 @@ interface RawProject {
   name: string;
   description: string;
   category?: string;
+  price?: number;
   images?: { url: string }[];
 }
 
@@ -30,33 +31,44 @@ interface Project {
   name: string;
   description: string;
   category: string;
+  price: number;
 }
 
 const Products = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [visibleProject, setVisibleProject] = useState(6);
+  const [visibleProject, setVisibleProject] = useState(8);
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         setLoading(true);
+
         const res = await api.get("/projects");
 
         if (res.status === 200) {
-          const rawData: RawProject[] =
-            res.data?.projects || res.data || [];
+          // 🔍 DEBUG (optional)
+          console.log("API Response:", res.data);
+
+          // ✅ Ensure it's ALWAYS an array
+          const rawData: RawProject[] = Array.isArray(res.data?.projects)
+            ? res.data.projects
+            : Array.isArray(res.data?.data)
+              ? res.data.data
+              : Array.isArray(res.data)
+                ? res.data
+                : [];
 
           const normalizedProjects: Project[] = rawData.map((p) => ({
             id: p._id,
             image:
-              p.images && p.images.length > 0 && p.images[0]?.url
-                ? p.images[0].url
-                : "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=800",
+              p.images?.[0]?.url ||
+              "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=800",
             name: p.name,
             description: p.description,
             category: p.category || "General",
+            price: p.price ?? 0,
           }));
 
           setProjects(normalizedProjects);
@@ -149,6 +161,7 @@ const Products = () => {
                       name={project.name}
                       description={project.description}
                       category={project.category}
+                      price={project.price}
                     />
                   ))}
               </div>

@@ -78,6 +78,7 @@ const Courses = () => {
                   typeof c.instructor === "object"
                   ? c.instructor._id
                   : c.instructor) || "1",
+              price: c.price || 0,
             };
           });
 

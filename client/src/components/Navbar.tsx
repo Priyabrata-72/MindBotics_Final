@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User } from "lucide-react";
 import logo from "../assets/mindbotics-logo.svg";
 import { useAuth } from "@/context/AuthContext";
+import { useWishlist } from "@/context/WishlistContext";
+import { useCart } from "@/context/CartContext";
+import { Heart, Menu, X, User, ShoppingCart } from "lucide-react";
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -16,9 +18,10 @@ const navLinks = [
 ];
 
 const Navbar = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuth(); // Use AuthContext
+  const { wishlist } = useWishlist();
+  const { totalItems } = useCart();
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -79,6 +82,32 @@ const Navbar = () => {
 
           {/* DESKTOP RIGHT SIDE */}
           <div className="hidden lg:flex items-center gap-4">
+            <Link
+              to="/wishlist"
+              className="relative p-2 text-black hover:text-red-500 transition-all duration-300 hover:scale-110"
+              title="Wishlist"
+            >
+              <Heart className={`w-6 h-6 ${wishlist.length > 0 ? "fill-red-500 text-red-500" : ""}`} />
+              {wishlist.length > 0 && (
+                <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                  {wishlist.length}
+                </span>
+              )}
+            </Link>
+
+            <Link
+              to="/cart"
+              className="relative p-2 text-black hover:text-primary transition-all duration-300 hover:scale-110"
+              title="Cart"
+            >
+              <ShoppingCart className="w-6 h-6" />
+              {totalItems > 0 && (
+                <span className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                  {totalItems}
+                </span>
+              )}
+            </Link>
+
             {!isAuthenticated ? (
               <>
                 <Button variant="ghost" asChild>
@@ -139,6 +168,38 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
+
+            <Link
+              to="/wishlist"
+              className="flex items-center justify-between py-3 px-4 hover:bg-accent rounded-md transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <div className="flex items-center gap-2">
+                <Heart className={`w-5 h-5 ${wishlist.length > 0 ? "fill-red-500 text-red-500" : ""}`} />
+                <span>Wishlist</span>
+              </div>
+              {wishlist.length > 0 && (
+                <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {wishlist.length}
+                </span>
+              )}
+            </Link>
+
+            <Link
+              to="/cart"
+              className="flex items-center justify-between py-3 px-4 hover:bg-accent rounded-md transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <div className="flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5" />
+                <span>Cart</span>
+              </div>
+              {totalItems > 0 && (
+                <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                  {totalItems}
+                </span>
+              )}
+            </Link>
 
             {!isAuthenticated ? (
               <div className="flex gap-2 mt-4">

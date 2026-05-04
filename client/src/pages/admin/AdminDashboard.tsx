@@ -1,30 +1,52 @@
 import { useEffect, useState } from "react";
-import { Users, BookOpen, UserCircle, Activity } from "lucide-react";
+import { Users, BookOpen, UserCircle, Activity, FolderKanban, Cuboid, DollarSign, RotateCcw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import api from "@/lib/api";
-
-// Mock API call
-
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 
 const AdminDashboard = () => {
     const [stats, setStats] = useState({
         counts: {
             users: 0,
             courses: 0,
-            contacts: 0
+            contacts: 0,
+            projects: 0,
+            threeDDesigns: 0,
         },
-        recentActivity: []
+        recentActivity: [],
+        payments: {
+            totalOrders: 0,
+            totalRevenue: 0,
+            refundedOrders: 0,
+            totalRefundAmount: 0,
+            chartData: []
+        }
     });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const getStats = async () => {
             try {
-                const res = await api.get("/admin");
-                const data = res.data;
+                const [adminRes, paymentRes] = await Promise.all([
+                    api.get("/admin"),
+                    api.get("/admin/payments/stats").catch(() => ({ data: {} })) // fallback if not available
+                ]);
+                
+                const data = adminRes.data;
+                const paymentData = paymentRes.data || {};
+                
                 if (data && data.counts) {
-                    setStats(data);
+                    setStats({
+                        ...data,
+                        payments: {
+                            totalOrders: paymentData.totalOrders || 0,
+                            totalRevenue: paymentData.totalRevenue || 0,
+                            refundedOrders: paymentData.refundedOrders || 0,
+                            totalRefundAmount: paymentData.totalRefundAmount || 0,
+                            chartData: paymentData.chartData || []
+                        }
+                    });
                 }
             } catch (error) {
                 console.error("Error fetching stats:", error);
@@ -38,7 +60,7 @@ const AdminDashboard = () => {
     if (loading) {
         return <div className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32" />)}
+                {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-32" />)}
             </div>
             <Skeleton className="h-64" />
         </div>;
@@ -52,6 +74,26 @@ const AdminDashboard = () => {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">₹{stats.payments.totalRevenue}</div>
+                        <p className="text-xs text-muted-foreground">From paid orders</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Refund Amount</CardTitle>
+                        <RotateCcw className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">₹{stats.payments.totalRefundAmount}</div>
+                        <p className="text-xs text-muted-foreground">Total refunded</p>
+                    </CardContent>
+                </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -82,16 +124,82 @@ const AdminDashboard = () => {
                         <p className="text-xs text-muted-foreground">+19% from last month</p>
                     </CardContent>
                 </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
+                        <FolderKanban className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.counts.projects}</div>
+                        <p className="text-xs text-muted-foreground">All listed project entries</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total 3D Designs</CardTitle>
+                        <Cuboid className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.counts.threeDDesigns}</div>
+                        <p className="text-xs text-muted-foreground">All 3D designs in the catalog</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                        <FolderKanban className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.payments.totalOrders}</div>
+                        <p className="text-xs text-muted-foreground">Across all statuses</p>
+                    </CardContent>
+                </Card>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
                 <Card className="col-span-4">
                     <CardHeader>
-                        <CardTitle>Overview</CardTitle>
+                        <CardTitle>Revenue Overview (Last 30 Days)</CardTitle>
                     </CardHeader>
                     <CardContent className="pl-2">
-                        <div className="h-[200px] flex items-center justify-center text-muted-foreground bg-gray-50 rounded-md">
-                            Chart Placeholder
+                        <div className="h-[300px] w-full">
+                            {stats.payments.chartData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={stats.payments.chartData}>
+                                        <XAxis 
+                                          dataKey="date" 
+                                          stroke="#888888" 
+                                          fontSize={12} 
+                                          tickLine={false} 
+                                          axisLine={false} 
+                                          tickFormatter={(value) => value.slice(5)}
+                                        />
+                                        <YAxis
+                                          stroke="#888888"
+                                          fontSize={12}
+                                          tickLine={false}
+                                          axisLine={false}
+                                          tickFormatter={(value) => `₹${value}`}
+                                        />
+                                        <Tooltip 
+                                          cursor={{ fill: 'transparent' }} 
+                                          formatter={(value: number) => [`₹${value}`, "Revenue"]}
+                                          labelFormatter={(label) => `Date: ${label}`}
+                                          contentStyle={{ borderRadius: '8px', border: '1px solid #eaeaea' }}
+                                        />
+                                        <Bar 
+                                          dataKey="revenue" 
+                                          fill="currentColor" 
+                                          radius={[4, 4, 0, 0]} 
+                                          className="fill-primary" 
+                                        />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="h-full flex items-center justify-center text-muted-foreground bg-gray-50 rounded-md">
+                                    No chart data available
+                                </div>
+                            )}
                         </div>
                     </CardContent>
                 </Card>

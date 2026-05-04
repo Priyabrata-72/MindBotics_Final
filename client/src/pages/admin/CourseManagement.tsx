@@ -59,22 +59,26 @@ const CourseManagement = () => {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
+    const [isEditCourseOpen, setIsEditCourseOpen] = useState(false);
+    const [editingCourse, setEditingCourse] = useState<Course | null>(null);
 
     // Form State
     const [title, setTitle] = useState("");
     const [shortDescription, setShortDescription] = useState("");
     const [fullDescription, setFullDescription] = useState(""); // Maps to description in backend
     const [category, setCategory] = useState("");
-    // const [price, setPrice] = useState("");
+    const [price, setPrice] = useState("0");
     const [level, setLevel] = useState("Beginner");
     const [duration, setDuration] = useState(""); // Weeks
     const [averageRating, setRating] = useState("0");
-    const [instructorName, setInstructorName] = useState("");
+    // const [averageRating, setRating] = useState("0");
 
     // Complex fields
     const [image, setImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [syllabus, setSyllabus] = useState<string[]>([""]);
+    const [syllabus90, setSyllabus90] = useState<string[]>([""]);
+    const [syllabus180, setSyllabus180] = useState<string[]>([""]);
     const [requirements, setRequirements] = useState<string[]>([""]);
     const [learningOutcomes, setlearningOutcomes] = useState<string[]>([""]);
 
@@ -103,16 +107,19 @@ const CourseManagement = () => {
         setShortDescription("");
         setFullDescription("");
         setCategory("");
-        // setPrice("");
+        setPrice("0");
         setLevel("Beginner");
         setDuration("");
         setRating("0");
-        setInstructorName("");
+        setRating("0");
         setImage(null);
         setImagePreview(null);
         setSyllabus([""]);
+        setSyllabus90([""]);
+        setSyllabus180([""]);
         setRequirements([""]);
         setlearningOutcomes([""]);
+        setEditingCourse(null);
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -142,13 +149,12 @@ const CourseManagement = () => {
             formData.append("description", fullDescription); // Backend expects 'description'
             formData.append("shortDescription", shortDescription);
             formData.append("category", category);
-            // formData.append("price", price);
+            formData.append("price", price);
             formData.append("level", level);
 
             // New Fields
             formData.append("duration", duration);
             formData.append("rating", averageRating);
-            formData.append("instructorName", instructorName);
 
             // Arrays - verify backend handling or send as JSON string if manual parsing implemented
             // Since we are "frontend only" and backend is standard express+multer, usually arrays needing manual parsing or repeated keys
@@ -157,6 +163,8 @@ const CourseManagement = () => {
             // Given standard 'multer' middleware often ignores arrays unless specified, we'll try JSON string which is robust if controller parses it.
             // If controller doesn't parse, it just stores the string or ignores.
             formData.append("syllabus", JSON.stringify(syllabus.filter(i => i)));
+            formData.append("syllabus90", JSON.stringify(syllabus90.filter(i => i)));
+            formData.append("syllabus180", JSON.stringify(syllabus180.filter(i => i)));
             formData.append("requirements", JSON.stringify(requirements.filter(i => i)));
             formData.append("learningOutcomes", JSON.stringify(learningOutcomes.filter(i => i))); // 'learningOutcomes' or 'learninglearningOutcomes'
 
@@ -205,6 +213,67 @@ const CourseManagement = () => {
         }
     };
 
+    /* ================= OPEN EDIT ================= */
+    const openEditCourse = (course: Course) => {
+        setEditingCourse(course);
+        setTitle(course.title);
+        setCategory(course.category);
+        setPrice(String(course.price ?? 0));
+        setLevel(course.level || "Beginner");
+        setDuration(course.duration || "");
+        setRating(String(course.averageRating ?? 0));
+        setImage(null);
+        setImagePreview(course.image || null);
+        // These fields may not come back from API — reset gracefully
+        setShortDescription("");
+        setFullDescription("");
+        setSyllabus(course.syllabus?.length ? course.syllabus : [""]);
+        setSyllabus90((course as any).syllabus90?.length ? (course as any).syllabus90 : [""]);
+        setSyllabus180((course as any).syllabus180?.length ? (course as any).syllabus180 : [""]);
+        setRequirements(course.requirements?.length ? course.requirements : [""]);
+        setlearningOutcomes([""]);
+        setIsEditCourseOpen(true);
+    };
+
+    /* ================= UPDATE COURSE ================= */
+    const handleUpdateCourse = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingCourse) return;
+        try {
+            const formData = new FormData();
+            formData.append("title", title);
+            formData.append("description", fullDescription);
+            formData.append("shortDescription", shortDescription);
+            formData.append("category", category);
+            formData.append("price", price);
+            formData.append("level", level);
+            formData.append("duration", duration);
+            formData.append("rating", averageRating);
+            formData.append("syllabus", JSON.stringify(syllabus.filter(i => i)));
+            formData.append("syllabus90", JSON.stringify(syllabus90.filter(i => i)));
+            formData.append("syllabus180", JSON.stringify(syllabus180.filter(i => i)));
+            formData.append("requirements", JSON.stringify(requirements.filter(i => i)));
+            formData.append("learningOutcomes", JSON.stringify(learningOutcomes.filter(i => i)));
+            if (image) {
+                formData.append("image", image);
+                formData.append("thumbnail", image);
+            }
+
+            const res = await api.put(`/admin/courses/${editingCourse._id}`, formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+
+            const updated = res.data?.course || res.data;
+            setCourses(prev => prev.map(c => c._id === editingCourse._id ? { ...c, ...updated } : c));
+            setIsEditCourseOpen(false);
+            resetForm();
+            toast.success("Course updated successfully");
+        } catch (error: any) {
+            console.error("Failed to update course", error);
+            toast.error(error.response?.data?.message || "Failed to update course");
+        }
+    };
+
     const filteredCourses = courses.filter(course =>
         course.title.toLowerCase().includes(search.toLowerCase())
     );
@@ -246,20 +315,14 @@ const CourseManagement = () => {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="instructorName">Instructor Name</Label>
-                                    <Input id="instructorName" value={instructorName} onChange={(e) => setInstructorName(e.target.value)} required placeholder="e.g. Dr. Smith" />
+                                    <Label htmlFor="duration">Duration (Weeks)</Label>
+                                    <Input id="duration" type="number" value={duration} onChange={(e) => setDuration(e.target.value)} required placeholder="12" />
                                 </div>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="duration">Duration (Weeks)</Label>
-                                        <Input id="duration" type="number" value={duration} onChange={(e) => setDuration(e.target.value)} required placeholder="12" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="rating">Rating (0-5)</Label>
-                                        <Input id="rating" type="number" min="0" max="5" step="0.1" value={averageRating} onChange={(e) => setRating(e.target.value)} required />
-                                    </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="rating">Rating (0-5)</Label>
+                                    <Input id="rating" type="number" min="0" max="5" step="0.1" value={averageRating} onChange={(e) => setRating(e.target.value)} required />
                                 </div>
                             </div>
 
@@ -274,10 +337,10 @@ const CourseManagement = () => {
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                {/* <div className="space-y-2">
-                                    <Label htmlFor="price">Price ($)</Label>
-                                    <Input id="price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} required />
-                                </div> */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="price">Price (₹)</Label>
+                                    <Input id="price" type="number" min="0" value={price} onChange={(e) => setPrice(e.target.value)} required />
+                                </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="level">Level</Label>
                                     <Select value={level} onValueChange={setLevel}>
@@ -316,13 +379,43 @@ const CourseManagement = () => {
                             <div className="space-y-4 border-t pt-4">
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center">
-                                        <Label>Course Syllabus (Sections)</Label>
+                                        <Label>Course Syllabus (30 Days / Beginner)</Label>
                                         <Button type="button" variant="outline" size="sm" onClick={() => addListItem(setSyllabus, syllabus)}>Add Section</Button>
                                     </div>
                                     {syllabus.map((item, index) => (
                                         <div key={index} className="flex gap-2">
-                                            <Input value={item} onChange={(e) => handleListChange(setSyllabus, syllabus, index, e.target.value)} placeholder={`Week ${index + 1} Topic...`} />
+                                            <Input value={item} onChange={(e) => handleListChange(setSyllabus, syllabus, index, e.target.value)} placeholder={`Topic ${index + 1}...`} />
                                             <Button type="button" variant="ghost" size="icon" onClick={() => removeListItem(setSyllabus, syllabus, index)} disabled={syllabus.length === 1}>
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <Label>Course Syllabus (90 Days / Intermediate)</Label>
+                                        <Button type="button" variant="outline" size="sm" onClick={() => addListItem(setSyllabus90, syllabus90)}>Add Section</Button>
+                                    </div>
+                                    {syllabus90.map((item, index) => (
+                                        <div key={index} className="flex gap-2">
+                                            <Input value={item} onChange={(e) => handleListChange(setSyllabus90, syllabus90, index, e.target.value)} placeholder={`Topic ${index + 1}...`} />
+                                            <Button type="button" variant="ghost" size="icon" onClick={() => removeListItem(setSyllabus90, syllabus90, index)} disabled={syllabus90.length === 1}>
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <Label>Course Syllabus (180 Days / Advanced)</Label>
+                                        <Button type="button" variant="outline" size="sm" onClick={() => addListItem(setSyllabus180, syllabus180)}>Add Section</Button>
+                                    </div>
+                                    {syllabus180.map((item, index) => (
+                                        <div key={index} className="flex gap-2">
+                                            <Input value={item} onChange={(e) => handleListChange(setSyllabus180, syllabus180, index, e.target.value)} placeholder={`Topic ${index + 1}...`} />
+                                            <Button type="button" variant="ghost" size="icon" onClick={() => removeListItem(setSyllabus180, syllabus180, index)} disabled={syllabus180.length === 1}>
                                                 <X className="h-4 w-4" />
                                             </Button>
                                         </div>
@@ -382,8 +475,8 @@ const CourseManagement = () => {
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-[200px]">Course Title</TableHead>
-                            <TableHead>Instructor</TableHead>
                             <TableHead>Category</TableHead>
+                            <TableHead>Price (₹)</TableHead>
                             <TableHead>Weeks</TableHead>
                             <TableHead>Rating</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
@@ -400,8 +493,8 @@ const CourseManagement = () => {
                             filteredCourses.map((course) => (
                                 <TableRow key={course._id}>
                                     <TableCell className="font-medium">{course.title}</TableCell>
-                                    <TableCell>{course.instructorName || course.instructor?.username || "Unknown"}</TableCell>
                                     <TableCell>{course.category}</TableCell>
+                                    <TableCell>{course.price === 0 ? "Free" : `₹${course.price}`}</TableCell>
                                     <TableCell>{course.duration || "-"}</TableCell>
                                     <TableCell>{course.averageRating || "-"}</TableCell>
                                     <TableCell className="text-right">
@@ -414,6 +507,10 @@ const CourseManagement = () => {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                <DropdownMenuItem onClick={() => openEditCourse(course)}>
+                                                    <Pencil className="mr-2 h-4 w-4" />
+                                                    Edit Course
+                                                </DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => handleDelete(course._id)} className="text-red-600">
                                                     <Trash className="mr-2 h-4 w-4" />
                                                     Delete Course
@@ -434,6 +531,148 @@ const CourseManagement = () => {
                 <div className="text-sm">Page {page} of {totalPages}</div>
                 <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>Next</Button>
             </div>
+
+            {/* ---- EDIT COURSE DIALOG ---- */}
+            <Dialog open={isEditCourseOpen} onOpenChange={(open) => {
+                setIsEditCourseOpen(open);
+                if (!open) resetForm();
+            }}>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Edit Course</DialogTitle>
+                        <DialogDescription>Update course details.</DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleUpdateCourse} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label>Course Name</Label>
+                                <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Category</Label>
+                                <Input value={category} onChange={(e) => setCategory(e.target.value)} required placeholder="e.g. AI/ML" />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label>Duration (Weeks)</Label>
+                                <Input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="12" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Rating (0-5)</Label>
+                                <Input type="number" min="0" max="5" step="0.1" value={averageRating} onChange={(e) => setRating(e.target.value)} />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Small Description</Label>
+                            <Input value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} maxLength={150} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>About This Course</Label>
+                            <Textarea value={fullDescription} onChange={(e) => setFullDescription(e.target.value)} className="min-h-[100px]" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label>Price (₹)</Label>
+                                <Input type="number" min="0" value={price} onChange={(e) => setPrice(e.target.value)} required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Level</Label>
+                                <Select value={level} onValueChange={setLevel}>
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Beginner">Beginner</SelectItem>
+                                        <SelectItem value="Intermediate">Intermediate</SelectItem>
+                                        <SelectItem value="Advanced">Advanced</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Course Image (upload new to replace)</Label>
+                            <div className="flex items-center gap-4">
+                                <label className="border-2 border-dashed border-gray-300 rounded-lg p-2 cursor-pointer hover:bg-gray-50 flex items-center justify-center w-32 h-24 overflow-hidden relative">
+                                    {imagePreview ? (
+                                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="text-center text-gray-400">
+                                            <Upload className="mx-auto h-6 w-6" />
+                                            <span className="text-xs">Upload</span>
+                                        </div>
+                                    )}
+                                    <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                                </label>
+                                {imagePreview && <Button type="button" variant="outline" size="sm" onClick={() => { setImage(null); setImagePreview(null); }}>Remove</Button>}
+                            </div>
+                        </div>
+                        <div className="space-y-4 border-t pt-4">
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <Label>Course Syllabus (30 Days / Beginner)</Label>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => addListItem(setSyllabus, syllabus)}>Add Section</Button>
+                                </div>
+                                {syllabus.map((item, index) => (
+                                    <div key={index} className="flex gap-2">
+                                        <Input value={item} onChange={(e) => handleListChange(setSyllabus, syllabus, index, e.target.value)} placeholder={`Topic ${index + 1}...`} />
+                                        <Button type="button" variant="ghost" size="icon" onClick={() => removeListItem(setSyllabus, syllabus, index)} disabled={syllabus.length === 1}><X className="h-4 w-4" /></Button>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <Label>Course Syllabus (90 Days / Intermediate)</Label>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => addListItem(setSyllabus90, syllabus90)}>Add Section</Button>
+                                </div>
+                                {syllabus90.map((item, index) => (
+                                    <div key={index} className="flex gap-2">
+                                        <Input value={item} onChange={(e) => handleListChange(setSyllabus90, syllabus90, index, e.target.value)} placeholder={`Topic ${index + 1}...`} />
+                                        <Button type="button" variant="ghost" size="icon" onClick={() => removeListItem(setSyllabus90, syllabus90, index)} disabled={syllabus90.length === 1}><X className="h-4 w-4" /></Button>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <Label>Course Syllabus (180 Days / Advanced)</Label>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => addListItem(setSyllabus180, syllabus180)}>Add Section</Button>
+                                </div>
+                                {syllabus180.map((item, index) => (
+                                    <div key={index} className="flex gap-2">
+                                        <Input value={item} onChange={(e) => handleListChange(setSyllabus180, syllabus180, index, e.target.value)} placeholder={`Topic ${index + 1}...`} />
+                                        <Button type="button" variant="ghost" size="icon" onClick={() => removeListItem(setSyllabus180, syllabus180, index)} disabled={syllabus180.length === 1}><X className="h-4 w-4" /></Button>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <Label>Requirements</Label>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => addListItem(setRequirements, requirements)}>Add Item</Button>
+                                </div>
+                                {requirements.map((item, index) => (
+                                    <div key={index} className="flex gap-2">
+                                        <Input value={item} onChange={(e) => handleListChange(setRequirements, requirements, index, e.target.value)} placeholder="Prerequisite..." />
+                                        <Button type="button" variant="ghost" size="icon" onClick={() => removeListItem(setRequirements, requirements, index)} disabled={requirements.length === 1}><X className="h-4 w-4" /></Button>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <Label>What You Will Learn</Label>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => addListItem(setlearningOutcomes, learningOutcomes)}>Add Item</Button>
+                                </div>
+                                {learningOutcomes.map((item, index) => (
+                                    <div key={index} className="flex gap-2">
+                                        <Input value={item} onChange={(e) => handleListChange(setlearningOutcomes, learningOutcomes, index, e.target.value)} placeholder="Skill acquired..." />
+                                        <Button type="button" variant="ghost" size="icon" onClick={() => removeListItem(setlearningOutcomes, learningOutcomes, index)} disabled={learningOutcomes.length === 1}><X className="h-4 w-4" /></Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button type="submit">Save Changes</Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

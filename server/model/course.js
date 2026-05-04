@@ -65,6 +65,8 @@ const courseSchema = new mongoose.Schema(
         requirements: [String],
         learningOutcomes: [String],
         syllabus: [String],
+        syllabus90: [String],
+        syllabus180: [String],
         lectures: [lectureSchema],
         averageRating: {
             type: Number,

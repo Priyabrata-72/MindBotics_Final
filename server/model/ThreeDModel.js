@@ -32,6 +32,12 @@ const threeDModelSchema = new mongoose.Schema(
       enum: ["Models", "Kits", "3D Printing", "Components", "Robotics"],
       default: "Models",
     },
+    price: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: 0,
+    },
     images: [
       {
         url: {

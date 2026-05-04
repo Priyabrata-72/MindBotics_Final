@@ -1,10 +1,13 @@
 import express from "express";
 import authRout from "./auth.js";
 import adminRoutes from "./adminRoutes.js";
+import orderRoutes from "./orderRoutes.js";
 import courseRoutes from "./courseRoutes.js";
 import projectRoutes from "./projectRoutes.js";
 import contactRoutes from "./contactRoutes.js";
 import feedbackRoutes from "./feedbackRoutes.js";
+import paymentRoutes from "./paymentRoutes.js";
+import userOrderRoutes from "./userOrderRoutes.js";
 import { getProducts, getProductById, createProductReview } from "../controller/shopController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -20,6 +23,7 @@ router.post("/3d/:id/reviews", protect, createProductReview);
 
 // Admin specific routes
 router.use("/admin", adminRoutes);
+router.use("/admin", orderRoutes);
 
 // Entity routes
 router.use("/courses", courseRoutes);
@@ -27,6 +31,8 @@ router.use("/projects", projectRoutes);
 router.use("/admin/projects", projectRoutes);
 router.use("/feedback", feedbackRoutes);
 router.use("/contact", contactRoutes);
+router.use("/payments", paymentRoutes);
+router.use("/orders", userOrderRoutes);
 
 // Compatibility alias for the old prefix if needed
 // router.use("/mindbotics/user", authRout);

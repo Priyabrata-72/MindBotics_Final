@@ -3,6 +3,15 @@ import Project from "../model/project.js";
 import cloudinary from "../config/cloudinary.js";
 
 
+
+const safeParse = (data, defaultValue = []) => {
+  try {
+    return typeof data === "string" ? JSON.parse(data) : data;
+  } catch {
+    return defaultValue;
+  }
+};
+
 // @desc    Get all projects
 // @route   GET /admin/projects
 // @access  Private/Admin
@@ -38,6 +47,8 @@ const createProject = asyncHandler(async (req, res) => {
     name,
     description,
     category,
+    price,
+    keyFeature,
     specifications,
     uses,
     includes,
@@ -63,24 +74,34 @@ const createProject = asyncHandler(async (req, res) => {
     }));
   }
 
+  const parsedSpecs = safeParse(specifications);
+  const parsedUses = safeParse(uses);
+  const parsedIncludes = safeParse(includes);
+  const parsedCourses = safeParse(selectedCourses);
+  const parsedFeatures = safeParse(keyFeature);
   // ---------- JSON Parse ----------
-  const parsedSpecs =
-    typeof specifications === "string"
-      ? JSON.parse(specifications)
-      : specifications;
+  // const parsedSpecs =
+  //   typeof specifications === "string"
+  //     ? JSON.parse(specifications)
+  //     : specifications;
 
-  const parsedUses =
-    typeof uses === "string" ? JSON.parse(uses) : uses;
+  // const parsedUses =
+  //   typeof uses === "string" ? JSON.parse(uses) : uses;
 
-  const parsedIncludes =
-    typeof includes === "string"
-      ? JSON.parse(includes)
-      : includes;
+  // const parsedIncludes =
+  //   typeof includes === "string"
+  //     ? JSON.parse(includes)
+  //     : includes;
 
-  const parsedCourses =
-    typeof selectedCourses === "string"
-      ? JSON.parse(selectedCourses)
-      : selectedCourses;
+  // const parsedCourses =
+  //   typeof selectedCourses === "string"
+  //     ? JSON.parse(selectedCourses)
+  //     : selectedCourses;
+
+  // const parsedFeatures =
+  //   typeof keyFeature === "string"
+  //     ? JSON.parse(keyFeature)
+  //     : keyFeature;
 
   const project = new Project({
     name,
@@ -92,6 +113,8 @@ const createProject = asyncHandler(async (req, res) => {
     uses: parsedUses,
     includes: parsedIncludes,
     courses: parsedCourses,
+    keyFeature: parsedFeatures,
+    price,
   });
 
   const createdProject = await project.save();
@@ -111,6 +134,20 @@ const updateProject = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Project not found");
   }
+  if (req.body.removeImages) {
+    const imagesToRemove =
+      typeof req.body.removeImages === "string"
+        ? JSON.parse(req.body.removeImages)
+        : req.body.removeImages;
+
+    for (const imgId of imagesToRemove) {
+      await cloudinary.uploader.destroy(imgId);
+    }
+
+    project.images = project.images.filter(
+      (img) => !imagesToRemove.includes(img.public_id)
+    );
+  }
 
   project.name = req.body.name || project.name;
   project.description = req.body.description || project.description;
@@ -119,28 +156,21 @@ const updateProject = asyncHandler(async (req, res) => {
 
   // JSON parsing
   if (req.body.specifications)
-    project.specifications =
-      typeof req.body.specifications === "string"
-        ? JSON.parse(req.body.specifications)
-        : req.body.specifications;
+    project.specifications = safeParse(req.body.specifications);
 
   if (req.body.uses)
-    project.uses =
-      typeof req.body.uses === "string"
-        ? JSON.parse(req.body.uses)
-        : req.body.uses;
+    project.uses = safeParse(req.body.uses);
 
   if (req.body.includes)
-    project.includes =
-      typeof req.body.includes === "string"
-        ? JSON.parse(req.body.includes)
-        : req.body.includes;
+    project.includes = safeParse(req.body.includes);
 
   if (req.body.selectedCourses)
-    project.courses =
-      typeof req.body.selectedCourses === "string"
-        ? JSON.parse(req.body.selectedCourses)
-        : req.body.selectedCourses;
+    project.courses = safeParse(req.body.selectedCourses);
+
+  if (req.body.keyFeature)
+    project.keyFeature = safeParse(req.body.keyFeature);
+
+  project.price = req.body.price ?? project.price;
 
   // ---------- Upload New Images ----------
   if (req.files && req.files.length > 0) {
@@ -161,6 +191,8 @@ const updateProject = asyncHandler(async (req, res) => {
   }
 
   const updatedProject = await project.save();
+  await updatedProject.populate("courses", "title");
+
   res.json(updatedProject);
 });
 

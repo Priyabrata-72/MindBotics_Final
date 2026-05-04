@@ -28,12 +28,18 @@ import UserManagement from "./pages/admin/UserManagement";
 import CourseManagement from "./pages/admin/CourseManagement";
 import ProjectManagement from "./pages/admin/ProjectManagement";
 import ContactUserManagement from "./pages/admin/ContactUserManagement";
+import FeedbackManagement from "./pages/admin/FeedbackManagement";
 import AdminLayout from "./layouts/AdminLayout";
 import AdminRoute from "./components/AdminRoute";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "@/context/AuthContext";
+import { WishlistProvider } from "@/context/WishlistContext";
+import { CartProvider } from "@/context/CartContext";
+import Wishlist from "./pages/Wishlist";
 import ThreeDManagement from "./pages/admin/ThreeDManagement";
+import OrderManagement from "./pages/admin/OrderManagement";
+import RefundManagement from "./pages/admin/RefundManagement";
 
 const queryClient = new QueryClient();
 
@@ -56,7 +62,9 @@ const App = () => {
         <Toaster />
         <Sonner />
         <AuthProvider>
-          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <WishlistProvider>
+            <CartProvider>
+              <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <ScrollToTop />
             <Routes>
               {/* Admin Routes */}
@@ -73,7 +81,10 @@ const App = () => {
                 <Route path="courses" element={<CourseManagement />} />
                 <Route path="projects" element={<ProjectManagement />} />
                 <Route path="contacts" element={<ContactUserManagement />} />
+                <Route path="feedback" element={<FeedbackManagement />} />
                 <Route path="shop" element={<ThreeDManagement />} />
+                <Route path="orders" element={<OrderManagement />} />
+                <Route path="refunds" element={<RefundManagement />} />
               </Route>
 
               <Route path="/" element={<Index />} />
@@ -90,6 +101,7 @@ const App = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/cart" element={<Cart />} />
+              <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/feedback" element={<FeedbackForm />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
 
@@ -106,6 +118,8 @@ const App = () => {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
+          </CartProvider>
+          </WishlistProvider>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>

@@ -21,6 +21,7 @@ interface RawProduct {
   name: string;
   description: string;
   category?: string;
+  price?: number;
   images?: { url: string }[];
 }
 
@@ -30,6 +31,7 @@ interface Product {
   name: string;
   description: string;
   category: string;
+  price?: number;
 }
 
 const Printing = () => {
@@ -58,6 +60,7 @@ const Printing = () => {
             name: p.name,
             description: p.description,
             category: p.category || "Models",
+            price: p.price,
           }));
 
           setProducts(normalizedProducts);
@@ -152,6 +155,7 @@ const Printing = () => {
                       name={product.name}
                       description={product.description}
                       category={product.category}
+                      price={product.price}
                     />
                   ))}
               </div>

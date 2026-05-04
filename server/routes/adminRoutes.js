@@ -7,6 +7,8 @@ import {
   getAllContacts,
   createUser,
   deleteContact,
+  deleteFeedback,
+  getAllFeedback,
   updateContactStatus,
   updateUserRole,
 } from "../controller/adminController.js";
@@ -60,6 +62,10 @@ router.get("/enrollments", getAllEnrollments);
 router.get("/contacts", getAllContacts);
 router.delete("/contacts/:id", deleteContact);
 router.put("/contacts/:id/status", updateContactStatus);
+
+// ---------------- FEEDBACK ----------------
+router.get("/feedback", getAllFeedback);
+router.delete("/feedback/:id", deleteFeedback);
 
 // ---------------- COURSE MANAGEMENT ----------------
 router.get("/courses", getAdminCourses);
